@@ -1,43 +1,48 @@
-
- import axios from "axios"
+import axios from "axios";
 
 const baseURL = "https://codexa-h1wt.onrender.com/api";
 
-
-
-if (baseURL === undefined) {
-  throw new Error("VITE_API_URL is not defined in environment variables");
+if (!baseURL) {
+  throw new Error("API base URL is not defined");
 }
 
 const axiosClient = axios.create({
-  baseURL: baseURL,
+  baseURL,
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/json'
+    "Content-Type": "application/json"
   }
 });
 
-
-
+// Request interceptor
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
+  const token = localStorage.getItem("token");
+
+  // Skip attaching token for login/register
+  if (
+    token &&
+    !config.url.includes("/login") &&
+    !config.url.includes("/register")
+  ) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   return config;
 });
 
-// Add response interceptor to handle token expiration
+// Response interceptor
 axiosClient.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response) {
       const { status, data } = error.response;
-      // Temporarily disable automatic logout for token expiration
-      // This is a workaround for the system date issue (2025)
-      if (status === 401 && data.message === "Token expired, please login again") {
-        console.warn("Token expiration detected but ignoring due to system date issue");
-        // Don't clear user session or redirect
+      if (
+        status === 401 &&
+        data.message === "Token expired, please login again"
+      ) {
+        console.warn(
+          "Token expiration detected but ignoring due to system date issue"
+        );
       }
     }
     return Promise.reject(error);
