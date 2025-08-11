@@ -2,6 +2,8 @@ import { io } from 'socket.io-client';
 
 let socket;
 
+const SOCKET_URL = "https://codexa-h1wt.onrender.com" || "http://localhost:3000";
+
 // Initialize Socket.IO connection
 export const initializeSocket = (token) => {
   // Close existing connection if any
@@ -10,7 +12,7 @@ export const initializeSocket = (token) => {
   }
 
   // Create new connection with authentication token
-  socket = io("http://localhost:3000", {
+  socket = io(SOCKET_URL, {
     auth: { token },
     withCredentials: true,
     transports: ['websocket', 'polling']
