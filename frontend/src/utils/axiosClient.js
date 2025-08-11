@@ -1,7 +1,7 @@
 
  import axios from "axios"
 
-const baseURL = "http://localhost:3000/api" || "https://codexa-h1wt.onrender.com/api";
+const baseURL = "https://codexa-h1wt.onrender.com/api";
 
 
 
