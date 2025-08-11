@@ -96,8 +96,7 @@ const getHeatmapData = async (req, res) => {
                     _id: {
                         $dateToString: {
                             format: "%Y-%m-%d",
-                            date: "$createdAt",
-                            timezone: "Asia/Kolkata",
+                            date: "$createdAt"
                         },
                     },
                     count: { $sum: 1 },

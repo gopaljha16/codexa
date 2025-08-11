@@ -1,4 +1,11 @@
-import axiosClient from '../axiosClient';
+import axiosClient from "../axiosClient";
+
+export const createChallenge = (problemId) => axiosClient.post("/challenge", { problemId });
+export const joinChallenge = (roomId) => axiosClient.post(`/challenge/join/${roomId}`);
+export const getChallenge = (roomId) => axiosClient.get(`/challenge/${roomId}`);
+export const submitBattleCode = (roomId, payload) => axiosClient.post(`/challenge/${roomId}/submit`, payload);
+
+
 
 export const updateProfile = (formData) => {
   return axiosClient.put('/user/updateProfile', formData, {

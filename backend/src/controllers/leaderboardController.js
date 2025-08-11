@@ -1,8 +1,29 @@
+const User = require('../models/user');
 const Contest = require("../models/contest");
 const ContestSubmission = require("../models/contestSubmission");
 const Leaderboard = require("../models/leaderboard");
 const { getIO } = require("../config/socket");
-const User = require("../models/user");
+
+exports.getLeaderboard = async (req, res) => {
+    try {
+        const leaderboard = await User.find({}, 'firstName profileImage problemsSolved rank')
+            .sort({ problemsSolved: -1 })
+            .limit(10);
+
+        res.status(200).json({
+            success: true,
+            leaderboard,
+        });
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: 'Failed to fetch leaderboard data',
+            error: error.message,
+        });
+    }
+};
+
+
 
 // Helper function to generate rankings from submissions
 const generateRankings = (submissions) => {

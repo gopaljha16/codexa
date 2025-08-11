@@ -151,6 +151,7 @@ const checkIfVideoExists = async (req, res) => {
 
     return res.status(200).json({
       exists: true,
+      videoUrl: video.secureUrl,
       video: {
         id: video._id,
         secureUrl: video.secureUrl,

@@ -42,7 +42,7 @@ const ProblemSchema = new Schema({
             // Broader Fields (use with caution)
             "data structures", "algorithms", "optimization", "machine learning", "artificial intelligence",
             "natural language processing", "computer vision", "deep learning", "reinforcement learning",
-            "networking", "security", "cryptography", "parallel processing", "distributed systems", "conditional", "condition", "digits", "parsing", "explanation"
+            "networking", "security", "cryptography", "parallel processing", "distributed systems", "conditional", "condition", "digits", "parsing", "explanation","vowels","explanation","frequency"
         ],
         required: true
     },

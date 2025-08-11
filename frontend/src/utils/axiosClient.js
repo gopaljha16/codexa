@@ -1,14 +1,20 @@
 
  import axios from "axios"
 
-const baseURL = import.meta.env.VITE_API_URL;
+const baseURL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV
+    ? "http://localhost:3000/api"
+    : "https://codexa-h1wt.onrender.com/api");
+
+
 
 if (baseURL === undefined) {
   throw new Error("VITE_API_URL is not defined in environment variables");
 }
 
 const axiosClient = axios.create({
-  baseURL: baseURL || "http://localhost:3000/api",
+  baseURL: baseURL,
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'

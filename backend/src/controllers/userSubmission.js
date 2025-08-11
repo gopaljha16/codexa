@@ -45,6 +45,17 @@ const submitCode = async (req, res) => {
         });
         console.log("submitCode: Submission created with pending status");
 
+        // Emit immediate update so heatmap updates right after user submits
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(userId.toString()).emit('userStatsUpdate', { userId, source: 'submissionCreated' });
+                console.log(`submitCode: Emitted userStatsUpdate (submissionCreated) to user ${userId}.`);
+            }
+        } catch (emitErr) {
+            console.warn("submitCode: Unable to emit userStatsUpdate after initial create:", emitErr.message);
+        }
+
         //now judge0 code submit 
         const languageId = await getLanguageById(language);
         if (!languageId) {
@@ -121,6 +132,17 @@ const submitCode = async (req, res) => {
         await submittedResult.save();
         console.log("submitCode: Submission updated with results");
 
+        // Emit real-time update for dashboard/heatmap regardless of verdict
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(userId.toString()).emit('userStatsUpdate', { userId, source: 'submission' });
+                console.log(`submitCode: Emitted userStatsUpdate (submission) to user ${userId}.`);
+            }
+        } catch (emitErr) {
+            console.warn("submitCode: Unable to emit userStatsUpdate after submission save:", emitErr.message);
+        }
+
         // after submission saving it to the problem Id - only if status is Accepted
         console.log("submitCode: Checking if problem is already solved. Status:", status);
         console.log("submitCode: User's problemSolved array:", req.result.problemSolved);
@@ -135,11 +157,6 @@ const submitCode = async (req, res) => {
                 );
                 if (updatedUser) {
                     console.log("submitCode: User problemSolved array updated successfully.");
-                    const io = getIO();
-                    if (io) {
-                        io.to(userId.toString()).emit('userStatsUpdate', { userId });
-                        console.log(`submitCode: Emitted userStatsUpdate event to user ${userId}.`);
-                    }
                 } else {
                     console.log("submitCode: User not found for update.");
                 }

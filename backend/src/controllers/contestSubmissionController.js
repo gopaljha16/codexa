@@ -145,6 +145,16 @@ exports.submitContestCode = async (req, res) => {
         submission.score = calculateScore(problem, testCasesPassed);
         await submission.save();
 
+        // Emit a real-time update for dashboard heatmap/activity
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(userId.toString()).emit('userStatsUpdate', { userId, source: 'contestSubmission' });
+            }
+        } catch (emitErr) {
+            console.warn('contest submit: failed to emit userStatsUpdate', emitErr.message);
+        }
+
         // Update user's streak and contest history
         if (status === "Accepted") {
             const user = await User.findById(userId);
@@ -161,7 +171,7 @@ exports.submitContestCode = async (req, res) => {
                     // All problems are solved, now mark the contest as completed
                     if (!user.contestsCompleted.some(c => c.toString() === contestId)) {
                         user.contestsCompleted.push(contestId);
-                        
+
                         const today = new Date();
                         const lastCompletion = user.lastContestCompletion ? new Date(user.lastContestCompletion) : null;
 

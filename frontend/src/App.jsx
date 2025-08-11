@@ -34,6 +34,8 @@ import { ContestProvider } from "./context/ContestContext";
 import { DSAVisualizer } from "./pages/DSAVisualizer";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Challenge from "./pages/Challenge";
+import ChallengeRoom from "./pages/ChallengeRoom";
 import EmailVerification from "./components/common/EmailVerification"; // Import
 import EmailVerificationPopup from "./components/common/EmailVerificationPopup";
 import DobutAi from "./components/common/DoubtAi";
@@ -80,7 +82,9 @@ const App = () => {
   return (
     <>
       <div>
-        {isAuthenticated && user && !user.emailVerified && <EmailVerificationPopup user={user} />}
+        {isAuthenticated && user && !user.emailVerified && (
+          <EmailVerificationPopup user={user} />
+        )}
         <ContestProvider>
           <Routes>
             <Route path="/" element={<Homepage />} />
@@ -95,6 +99,18 @@ const App = () => {
               path="/dashboard"
               element={
                 isAuthenticated ? <DashboardPage /> : <Navigate to={"/login"} />
+              }
+            />
+            <Route
+              path="/challenge"
+              element={
+                isAuthenticated ? <Challenge /> : <Navigate to={"/login"} />
+              }
+            />
+            <Route
+              path="/challenge/:roomId"
+              element={
+                isAuthenticated ? <ChallengeRoom /> : <Navigate to={"/login"} />
               }
             />
             <Route
@@ -226,8 +242,6 @@ const App = () => {
                 )
               }
             />
-           
-
             <Route
               path="/contest/:contestId/problem/:problemId"
               element={
@@ -267,7 +281,11 @@ const App = () => {
             <Route
               path="/premium-dashboard"
               element={
-                isAuthenticated ? <PremiumDashboard /> : <Navigate to={"/login"} />
+                isAuthenticated ? (
+                  <PremiumDashboard />
+                ) : (
+                  <Navigate to={"/login"} />
+                )
               }
             />
             <Route
@@ -295,23 +313,14 @@ const App = () => {
             <Route
               path="/doubt-ai"
               element={
-                isAuthenticated ? (
-                  <DobutAi />
-                ) : (
-                  <Navigate to={"/login"} />
-                )
+                isAuthenticated ? <DobutAi /> : <Navigate to={"/login"} />
               }
             />
-             <Route
+            <Route
               path="/visualizer"
               element={
-                isAuthenticated ? (
-                  <DSAVisualizer />
-                ) : (
-                  <Navigate to={"/login"} />
-                )
+                isAuthenticated ? <DSAVisualizer /> : <Navigate to={"/login"} />
               }
-              
             />
           </Routes>
         </ContestProvider>

@@ -1,5 +1,5 @@
 const express = require("express");
-const { register, getProfile, login, logout, deleteProfile, activeUsers, updateProfile, googleLogin, getAllUsers, getPlatformStats, updateAllProfileImages } = require("../controllers/userAuthenticate");
+const { register, getProfile, login, logout, deleteProfile, activeUsers, updateProfile, googleLogin, getAllUsers, getPlatformStats, updateAllProfileImages, deleteUser } = require("../controllers/userAuthenticate");
 const { requestEmailVerificationOTP, verifyEmailOTP, requestPasswordResetOTP, resetPassword, changePassword } = require("../controllers/userVerification");
 const { signupWithVerification, verifySignupOTP } = require("../controllers/userSignupVerification");
 const { userMiddleware } = require("../middleware/userMiddleware");
@@ -19,6 +19,7 @@ authRouter.get("/activeuser", adminMiddleware, activeUsers);
 authRouter.get("/users", adminMiddleware, getAllUsers);
 authRouter.get("/platform-stats", adminMiddleware, getPlatformStats);
 authRouter.put("/admin/update-all-profile-images", adminMiddleware, updateAllProfileImages);
+authRouter.delete("/admin/user/:userId", adminMiddleware, deleteUser);
 
 // New route for Google login
 authRouter.post("/googleLogin", googleLogin);

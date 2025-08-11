@@ -29,3 +29,13 @@ export const updateAllUsersProfileImages = async () => {
         throw error;
     }
 };
+
+export const deleteUser = async (userId) => {
+    try {
+        const response = await axiosClient.delete(`/user/admin/user/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        throw error;
+    }
+}
