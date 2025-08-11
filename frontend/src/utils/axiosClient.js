@@ -1,11 +1,7 @@
 
  import axios from "axios"
 
-const baseURL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV
-    ? "http://localhost:3000/api"
-    : "https://codexa-h1wt.onrender.com/api");
+const baseURL = "http://localhost:3000/api" || "https://codexa-h1wt.onrender.com/api";
 
 
 
