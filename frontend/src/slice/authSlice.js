@@ -26,7 +26,12 @@ export const loginUser = createAsyncThunk(
       // Return user and token
       return { user: response.data.user, token: response.data.token };
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || err.message || "Login failed");
+      // Preserve backend payload so UI can react to needsVerification, message, etc.
+      const backendData = err.response?.data;
+      if (backendData && typeof backendData === 'object') {
+        return rejectWithValue(backendData);
+      }
+      return rejectWithValue({ message: err.message || "Login failed" });
     }
   }
 );

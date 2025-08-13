@@ -103,11 +103,14 @@ const register = async (req, res) => {
 const login = async (req, res) => {
     try {
         const { emailId, password } = req.body;
-        if (!emailId || !password) throw new Error("Credentials Missing");
+        if (!emailId || !password) {
+            return res.status(400).json({ success: false, message: "Credentials Missing" });
+        }
 
-        const user = await User.findOne({ emailId });
+        const normalizedEmail = emailId.toLowerCase();
+        const user = await User.findOne({ emailId: normalizedEmail });
         if (!user) {
-            return res.status(403).send("Error Invalid Credentials");
+            return res.status(403).json({ success: false, message: "Invalid credentials" });
         }
 
         if (!user.emailVerified) {
@@ -115,7 +118,7 @@ const login = async (req, res) => {
                 success: false,
                 message: "Email not verified. Please verify your email before logging in.",
                 needsVerification: true,
-                email: emailId
+                email: normalizedEmail
             });
         }
 
@@ -128,7 +131,7 @@ const login = async (req, res) => {
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            return res.status(403).send("Error Invalid Credentials");
+            return res.status(403).json({ success: false, message: "Invalid credentials" });
         }
 
         // Increase token expiration to 7 days (604800 seconds)
@@ -141,7 +144,6 @@ const login = async (req, res) => {
             secure: true       // Required for HTTPS
         });
 
-        
         const reply = {
             firstName: user.firstName,
             emailId: user.emailId,
@@ -151,7 +153,7 @@ const login = async (req, res) => {
 
         res.status(201).json({ success: true, user: reply, token, message: "Logged In Successfully" });
     } catch (err) {
-        res.status(403).send("Error " + err);
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
