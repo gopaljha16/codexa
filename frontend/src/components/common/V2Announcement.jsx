@@ -38,7 +38,7 @@ const V2Announcement = ({ onClose }) => {
             Codexa v2 is coming soon
           </h2>
           <p className="text-slate-300 leading-relaxed">
-            Were rolling out a refreshed UI and new features. You might notice a
+            We're rolling out a refreshed UI and new features. You might notice a
             few changes as we prepare the upgrade. Stay tuned for the v2 launch!
           </p>
           <div className="mt-6 flex justify-end">

@@ -4,7 +4,7 @@ import Homepage from "./pages/Homepage";
 import Login from "./components/common/Login";
 import Signup from "./components/common/Signup";
 import { useDispatch, useSelector } from "react-redux";
-import { checkAuth, getProfile } from "./slice/authSlice";
+import { checkAuth, getProfile, googleLoginUser } from "./slice/authSlice";
 import Problem from "./pages/Problem";
 import ProblemSolve from "./pages/ProblemSolve";
 import AdminPage from "./pages/AdminPage";
@@ -43,6 +43,7 @@ import { initializeSocket } from "./utils/socket";
 import V2Announcement, {
   shouldShowV2Announcement,
 } from "./components/common/V2Announcement";
+import { toast } from "react-toastify";
 
 const ContestLeaderboardWrapper = () => {
   const { contestId } = useParams();
@@ -53,6 +54,7 @@ const App = () => {
   const { isAuthenticated, loading, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const [showV2, setShowV2] = useState(false);
+  const [googleHandled, setGoogleHandled] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -72,6 +74,30 @@ const App = () => {
       setShowV2(true);
     }
   }, []);
+
+  // Handle Google OAuth implicit redirect globally (works with HashRouter)
+  useEffect(() => {
+    if (googleHandled) return;
+    const hash = window.location.hash || "";
+    if (hash.includes("access_token")) {
+      const params = new URLSearchParams(hash.replace(/^#/, ""));
+      const accessToken = params.get("access_token");
+      if (accessToken) {
+        setGoogleHandled(true);
+        (async () => {
+          const res = await dispatch(googleLoginUser(accessToken));
+          if (res?.meta?.requestStatus === "fulfilled") {
+            toast.success("Logged In Successfully with Google");
+            await dispatch(getProfile());
+          } else {
+            toast.error(res?.payload?.message || "Google login failed");
+          }
+          // Normalize URL back to app routes
+          window.location.hash = "#/";
+        })();
+      }
+    }
+  }, [dispatch, googleHandled]);
 
   if (loading) {
     return (
