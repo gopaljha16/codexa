@@ -119,6 +119,13 @@ const login = async (req, res) => {
             });
         }
 
+        if (!user.password) {
+            return res.status(403).json({
+                success: false,
+                message: "You have registered with a social account. Please use Google to log in.",
+            });
+        }
+
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
             return res.status(403).send("Error Invalid Credentials");
