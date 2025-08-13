@@ -62,14 +62,6 @@ const App = () => {
     fetchProfile();
   }, [dispatch]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      const token = localStorage.getItem("token");
-      if (token) {
-        initializeSocket(token);
-      }
-    }
-  }, [isAuthenticated]);
 
   if (loading) {
     return (

@@ -2,7 +2,7 @@ import { io } from 'socket.io-client';
 
 let socket;
 
-const SOCKET_URL = "https://codexa-h1wt.onrender.com" || "http://localhost:3000";
+const SOCKET_URL = "https://api.codexa.live";
 
 // Initialize Socket.IO connection
 export const initializeSocket = (token) => {

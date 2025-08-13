@@ -1,6 +1,7 @@
 
 // Import googleLogin API
 import { googleLogin as googleLoginApi, register, login, logout, checkAuth as checkAuthApi, getProfile as getProfileApi } from '../utils/apis/userApi';
+import { initializeSocket } from '../utils/socket';
 
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { updateProfile as updateProfileApi } from '../utils/apis/userApi';
@@ -303,6 +304,9 @@ const authSlice = createSlice({
         console.log("LOGIN SUCCESSFUL, SETTING TOKEN:", action.payload.token);
         localStorage.setItem('authToken', action.payload.token);
         localStorage.setItem('user', JSON.stringify(action.payload.user));
+        if (action.payload.token) {
+          initializeSocket(action.payload.token);
+        }
         // Dispatch getProfile to fetch full user data including streak
         // This needs to be handled outside the slice, e.g., in the component that dispatches loginUser
       })
@@ -326,6 +330,9 @@ const authSlice = createSlice({
         // Update localStorage for token and user
         localStorage.setItem('authToken', action.payload.token);
         localStorage.setItem('user', JSON.stringify(action.payload.user));
+        if (action.payload.token) {
+          initializeSocket(action.payload.token);
+        }
         // Dispatch getProfile to fetch full user data including streak
         // This needs to be handled outside the slice, e.g., in the component that dispatches googleLoginUser
       })
@@ -365,6 +372,10 @@ const authSlice = createSlice({
         state.loading = false;
         state.isAuthenticated = !!action.payload;
         state.user = action.payload;
+        const token = localStorage.getItem("authToken");
+        if (token) {
+          initializeSocket(token);
+        }
       })
       .addCase(checkAuth.rejected, (state, action) => {
         state.loading = false,
