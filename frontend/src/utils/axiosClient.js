@@ -16,7 +16,7 @@ const axiosClient = axios.create({
 
 // Request interceptor
 axiosClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem("authToken");
 
   // Skip attaching token for login/register
   if (
