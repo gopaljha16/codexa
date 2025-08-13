@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useParams } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import Login from "./components/common/Login";
@@ -40,6 +40,9 @@ import EmailVerification from "./components/common/EmailVerification"; // Import
 import EmailVerificationPopup from "./components/common/EmailVerificationPopup";
 import DobutAi from "./components/common/DoubtAi";
 import { initializeSocket } from "./utils/socket";
+import V2Announcement, {
+  shouldShowV2Announcement,
+} from "./components/common/V2Announcement";
 
 const ContestLeaderboardWrapper = () => {
   const { contestId } = useParams();
@@ -49,6 +52,7 @@ const ContestLeaderboardWrapper = () => {
 const App = () => {
   const { isAuthenticated, loading, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const [showV2, setShowV2] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -62,6 +66,12 @@ const App = () => {
     fetchProfile();
   }, [dispatch]);
 
+  useEffect(() => {
+    // Show announcement once per user (stored in localStorage)
+    if (shouldShowV2Announcement()) {
+      setShowV2(true);
+    }
+  }, []);
 
   if (loading) {
     return (
@@ -74,6 +84,7 @@ const App = () => {
   return (
     <>
       <div>
+        {showV2 && <V2Announcement onClose={() => setShowV2(false)} />}
         {isAuthenticated && user && !user.emailVerified && (
           <EmailVerificationPopup user={user} />
         )}
