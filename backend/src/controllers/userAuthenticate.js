@@ -102,12 +102,13 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { emailId, password } = req.body;
-        if (!emailId || !password) {
+        const { emailId, email, password } = req.body;
+        const providedEmail = (emailId || email || "").trim();
+        if (!providedEmail || !password) {
             return res.status(400).json({ success: false, message: "Credentials Missing" });
         }
 
-        const normalizedEmail = emailId.toLowerCase();
+        const normalizedEmail = providedEmail.toLowerCase();
         const user = await User.findOne({ emailId: normalizedEmail });
         if (!user) {
             return res.status(403).json({ success: false, message: "Invalid credentials" });
