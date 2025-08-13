@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "https://codexa-h1wt.onrender.com/api";
+const baseURL = "https://api.codexa.live/api";
 
 if (!baseURL) {
   throw new Error("API base URL is not defined");
