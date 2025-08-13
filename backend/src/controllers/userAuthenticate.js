@@ -394,8 +394,8 @@ const googleLogin = async (req, res) => {
         res.cookie("token", jwtToken, {
             maxAge: 604800000, // 7 days
             httpOnly: true,
-            sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production'
+            sameSite: 'none', // cross-site cookie for api.codexa.live -> codexa.live
+            secure: true
         });
 
         res.status(200).json({
