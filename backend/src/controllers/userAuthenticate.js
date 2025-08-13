@@ -76,7 +76,12 @@ const register = async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign({ _id: newUser._id, emailId: newUser.emailId, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: 604800 });
-        res.cookie("token", token, { maxAge: 604800000, httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+        res.cookie("token", token, {
+            maxAge: 604800000,
+            httpOnly: true,
+            sameSite: 'none',  // Required for cross-site cookies
+            secure: true       // Required for HTTPS
+        });
 
         res.status(201).json({
             success: true,
@@ -122,8 +127,14 @@ const login = async (req, res) => {
         // Increase token expiration to 7 days (604800 seconds)
         const token = jwt.sign({ _id: user._id, emailId: user.emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 604800 });
         // Increase cookie maxAge to 7 days (604800000 milliseconds)
-        res.cookie("token", token, { maxAge: 604800000, httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+        res.cookie("token", token, {
+            maxAge: 604800000,
+            httpOnly: true,
+            sameSite: 'none',  // Required for cross-site cookies
+            secure: true       // Required for HTTPS
+        });
 
+        
         const reply = {
             firstName: user.firstName,
             emailId: user.emailId,
