@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import useTypewriterEffect from "../../hooks/useTypewriterEffect";
 import { useForm } from "react-hook-form";
 import { useDispatch, useSelector } from "react-redux";
 import { getProfile } from "../../slice/authSlice";
@@ -16,6 +17,7 @@ import {
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { initializeSocket } from "../../utils/socket";
+import AIFormattedText from "./AIFormattedText";
 import axiosClient from "../../utils/axiosClient";
 function DobutAi({ problem }) {
   const dispatch = useDispatch();
@@ -42,7 +44,24 @@ function DobutAi({ problem }) {
   const [isStreaming, setIsStreaming] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [skipAnimation, setSkipAnimation] = useState(false);
   const textareaRef = useRef(null);
+  const containerRef = useRef(null);
+
+  // Determine the last AI message and animate it until fully caught up
+  const lastIndex = messages.length - 1;
+  const lastMessage = lastIndex >= 0 ? messages[lastIndex] : null;
+  const isLastModel = Boolean(lastMessage && lastMessage.role === "model");
+  const targetText = isLastModel ? lastMessage?.parts?.[0]?.text || "" : "";
+  const {
+    displayedText,
+    isTyping: isTypewriting,
+    finish,
+  } = useTypewriterEffect(targetText, {
+    enabled: isLastModel,
+    speedMs: 28,
+    skip: skipAnimation,
+  });
 
   useEffect(() => {
     dispatch(getProfile());
@@ -54,11 +73,26 @@ function DobutAi({ problem }) {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, isTyping]);
+  }, [messages, isTyping, displayedText]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  // Skip animation if user scrolls while the latest AI message is animating
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const onScroll = () => {
+      if (isLastModel) setSkipAnimation(true);
+    };
+    el.addEventListener("wheel", onScroll, { passive: true });
+    el.addEventListener("touchmove", onScroll, { passive: true });
+    return () => {
+      el.removeEventListener("wheel", onScroll);
+      el.removeEventListener("touchmove", onScroll);
+    };
+  }, [isLastModel]);
 
   const copyToClipboard = async (text, index) => {
     try {
@@ -72,8 +106,7 @@ function DobutAi({ problem }) {
 
   const detectLanguage = (code) => {
     // Simple language detection based on code patterns
-    if (code.includes("function"))
-      return "javascript";
+    if (code.includes("function")) return "javascript";
     if (code.includes("def ") || code.includes("import ")) return "python";
     if (code.includes("public class") || code.includes("System.out.println"))
       return "java";
@@ -406,10 +439,10 @@ function DobutAi({ problem }) {
       }
 
       const response = await fetch(`/api/ai/chat`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
@@ -417,7 +450,7 @@ function DobutAi({ problem }) {
           description: problem?.description,
           testCases: problem?.visibleTestCases,
           startCode: problem?.startCode,
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -506,6 +539,7 @@ function DobutAi({ problem }) {
     } finally {
       setIsStreaming(false);
       setIsTyping(false);
+      setSkipAnimation(false);
     }
   };
 
@@ -593,7 +627,10 @@ function DobutAi({ problem }) {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-gray-900/80 via-gray-900 to-gray-900">
+      <div
+        ref={containerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-6 bg-gradient-to-b from-gray-900/80 via-gray-900 to-gray-900"
+      >
         {messages.map((msg, index) => (
           <div
             key={index}
@@ -631,19 +668,34 @@ function DobutAi({ problem }) {
                       {msg.parts[0].text}
                     </span>
                   ) : (
-                    <div className="prose prose-invert max-w-none">
+                    <div className="max-w-none">
                       {msg.streaming && msg.parts[0].text.length === 0 ? (
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                          <div
+                            className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.4s" }}
+                          ></div>
                         </div>
+                      ) : // Keep animating until displayedText fully catches up to the target
+                      index === lastIndex &&
+                        isLastModel &&
+                        displayedText.length <
+                          (msg.parts?.[0]?.text?.length || 0) ? (
+                        <AIFormattedText text={displayedText} />
                       ) : (
-                        formatMessage(msg.parts[0].text)
+                        <AIFormattedText text={msg.parts[0].text} />
                       )}
-                      {msg.streaming && msg.parts[0].text.length > 0 && (
-                        <span className="inline-block w-2.5 h-4 bg-white animate-pulse ml-1" />
-                      )}
+                      {index === lastIndex &&
+                        isLastModel &&
+                        displayedText.length <
+                          (msg.parts?.[0]?.text?.length || 0) && (
+                          <span className="inline-block w-2.5 h-4 bg-white/80 animate-pulse ml-1 align-baseline" />
+                        )}
                     </div>
                   )}
                 </div>
@@ -689,6 +741,19 @@ function DobutAi({ problem }) {
       {/* Input Form */}
       <div className="border-t border-gray-800 bg-gray-900/90 backdrop-blur-sm p-4 sticky bottom-0">
         <div className="max-w-4xl mx-auto">
+          {isLastModel && displayedText.length < (targetText?.length || 0) && (
+            <div className="flex items-center justify-end mb-2">
+              <button
+                onClick={() => {
+                  setSkipAnimation(true);
+                  finish();
+                }}
+                className="text-xs px-2 py-1 rounded bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300"
+              >
+                Skip animation
+              </button>
+            </div>
+          )}
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex items-end gap-3"

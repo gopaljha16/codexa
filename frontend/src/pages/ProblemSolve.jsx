@@ -37,6 +37,7 @@ import Editorial from "../components/common/Editorial";
 import axiosClient from "../utils/axiosClient";
 import DobutAi from "../components/common/DoubtAi";
 import SubmissionHistory from "../components/common/SubmissionHistory";
+import { celebrateSuccess, fullCelebration } from "../utils/celebration";
 
 const ProblemPage = () => {
   const dispatch = useDispatch();
@@ -191,25 +192,33 @@ const ProblemPage = () => {
       // Update problem solved status if submission accepted
       if (response.data && response.data.accepted) {
         console.log("Submission accepted, updating problem solved status");
-        setProblem(prevProblem => ({
+        setProblem((prevProblem) => ({
           ...prevProblem,
-          solved: true
+          solved: true,
         }));
-        
+
         // Dispatch action to update solved problems in Redux store
         try {
-          console.log("Dispatching fetchSolvedProblems after successful submission");
+          console.log(
+            "Dispatching fetchSolvedProblems after successful submission"
+          );
           await dispatch(fetchSolvedProblems()).unwrap();
           console.log("Successfully updated solved problems in Redux store");
-          
+
           // Show success toast
           toast.success("Problem marked as solved!", {
             position: "top-right",
-            autoClose: 3000
+            autoClose: 3000,
           });
+
+          // Trigger celebration animation (choose one)
+          // celebrateSuccess();
+          fullCelebration();
         } catch (error) {
           console.error("Error updating solved problems:", error);
-          toast.error("Problem solved, but failed to update your solved problems list");
+          toast.error(
+            "Problem solved, but failed to update your solved problems list"
+          );
         }
       }
     } catch (error) {
@@ -1242,9 +1251,12 @@ const ProblemPage = () => {
                           <MemoryStick className="w-4 h-4 text-purple-400" />
                           <span className="text-gray-400 text-sm">Memory</span>
                         </div>
-                          <div className="text-xl font-bold text-white">
-                            {submitResult.memory !== undefined && submitResult.memory !== null ? submitResult.memory : "N/A"}
-                          </div>
+                        <div className="text-xl font-bold text-white">
+                          {submitResult.memory !== undefined &&
+                          submitResult.memory !== null
+                            ? submitResult.memory
+                            : "N/A"}
+                        </div>
                         {submitResult.memoryPercentile && (
                           <div className="text-xs text-gray-400 mt-1">
                             Beats {submitResult.memoryPercentile}% of users
