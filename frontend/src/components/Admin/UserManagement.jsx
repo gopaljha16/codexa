@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getAllUsers } from '../../utils/apis/adminApi';
+import { getAllUsers, updateAllUsersProfileImages, deleteUser } from '../../utils/apis/adminApi';
 import { motion } from 'framer-motion';
 import { FiSearch, FiXCircle } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
@@ -10,19 +10,24 @@ const UserManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [updateMessage, setUpdateMessage] = useState('');
+    const [showConfirm, setShowConfirm] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+
+    const fetchUsers = async () => {
+        setLoading(true);
+        try {
+            const data = await getAllUsers();
+            setUsers(data.users);
+            setFilteredUsers(data.users);
+        } catch (err) {
+            setError('Failed to fetch users');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchUsers = async () => {
-            try {
-                const data = await getAllUsers();
-                setUsers(data.users);
-                setFilteredUsers(data.users);
-            } catch (err) {
-                setError('Failed to fetch users');
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchUsers();
     }, []);
 
@@ -33,6 +38,26 @@ const UserManagement = () => {
         );
         setFilteredUsers(results);
     }, [searchTerm, users]);
+
+    const handleDeleteClick = (user) => {
+        setUserToDelete(user);
+        setShowConfirm(true);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (userToDelete) {
+            try {
+                await deleteUser(userToDelete._id);
+                setUsers(users.filter(u => u._id !== userToDelete._id));
+                setUpdateMessage('User deleted successfully');
+            } catch (err) {
+                setError('Failed to delete user');
+            } finally {
+                setShowConfirm(false);
+                setUserToDelete(null);
+            }
+        }
+    };
 
     if (loading) {
         return <div className="text-center p-8 bg-gray-900 text-white">Loading...</div>;
@@ -52,10 +77,24 @@ const UserManagement = () => {
             <div className="max-w-7xl mx-auto">
                 <div className="flex justify-between items-center mb-6">
                     <h1 className="text-3xl font-bold text-orange-500">User Management</h1>
-                    <Link to="/admin" className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">
-                        Back to Admin
-                    </Link>
+                    <div>
+                        <button
+                            onClick={async () => {
+                                setUpdateMessage('Updating...');
+                                const res = await updateAllUsersProfileImages();
+                                setUpdateMessage(res.message);
+                                fetchUsers();
+                            }}
+                            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded mr-2"
+                        >
+                            Update All Profile Images
+                        </button>
+                        <Link to="/admin" className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded">
+                            Back to Admin
+                        </Link>
+                    </div>
                 </div>
+                {updateMessage && <div className="text-center p-4 my-4 bg-gray-700 text-white rounded-lg">{updateMessage}</div>}
                 <div className="relative mb-6">
                     <FiSearch className="absolute top-1/2 left-4 transform -translate-y-1/2 text-gray-400" />
                     <input
@@ -105,7 +144,7 @@ const UserManagement = () => {
                                         <p className="text-white whitespace-no-wrap">{new Date(user.createdAt).toLocaleDateString()}</p>
                                     </td>
                                     <td className="px-5 py-5 border-b border-gray-700 bg-gray-800 text-sm">
-                                        <button className="text-red-500 hover:text-red-700">
+                                        <button onClick={() => handleDeleteClick(user)} className="text-red-500 hover:text-red-700">
                                             <FiXCircle size={20} />
                                         </button>
                                     </td>
@@ -115,6 +154,22 @@ const UserManagement = () => {
                     </table>
                 </div>
             </div>
+            {showConfirm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+                    <div className="bg-gray-800 p-6 rounded-lg shadow-xl">
+                        <h2 className="text-xl font-bold mb-4">Are you sure?</h2>
+                        <p className="mb-6">Do you really want to delete {userToDelete?.firstName}? This action cannot be undone.</p>
+                        <div className="flex justify-end">
+                            <button onClick={() => setShowConfirm(false)} className="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded mr-2">
+                                Cancel
+                            </button>
+                            <button onClick={handleConfirmDelete} className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </motion.div>
     );
 };

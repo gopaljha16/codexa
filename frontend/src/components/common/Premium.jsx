@@ -146,7 +146,7 @@ const Premium = () => {
       console.log("Razorpay Key:", razorpayKey);
 
       const { data: order } = await axiosClient.post(
-        "/api/payments/create-order",
+        "/payments/create-order",
         { plan: planId }
       );
 
@@ -163,7 +163,7 @@ const Premium = () => {
           console.log("Payment response:", response);
           try {
             const verifyResponse = await axiosClient.post(
-              "/api/payments/verify",
+              "/payments/verify",
               {
                 razorpay_order_id: response.razorpay_order_id,
                 razorpay_payment_id: response.razorpay_payment_id,

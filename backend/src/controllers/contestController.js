@@ -163,7 +163,12 @@ exports.getContestById = async (req, res) => {
 
 exports.updateContest = async (req, res) => {
   try {
-    const updated = await Contest.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updateData = { ...req.body };
+    if (req.body.startTime) {
+      updateData.date = new Date(req.body.startTime).toISOString().split("T")[0];
+    }
+
+    const updated = await Contest.findByIdAndUpdate(req.params.id, updateData, { new: true });
     if (!updated) return res.status(404).json({ message: "Contest not found" });
     res.json(updated);
   } catch (err) {

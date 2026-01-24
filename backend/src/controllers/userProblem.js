@@ -41,15 +41,8 @@ const createProblem = async (req, res) => {
 
             // check the test cases
             for (const test of testResult) {
-                if (test.status_id !== 3) {
-                    let errorMessage = `Test case failed. Status: ${test.status.description}.`;
-                    if (test.status_id === 6) { // Compilation Error
-                        errorMessage = `Compilation Error: ${Buffer.from(test.compile_output, 'base64').toString('utf-8')}`;
-                    } else if (test.stderr) {
-                        errorMessage += ` Error: ${Buffer.from(test.stderr, 'base64').toString('utf-8')}`;
-                    }
-                    return res.status(400).send(errorMessage);
-                }
+                if (test.status_id != 3)
+                    return res.status(400).send("Error Occured Status_code is not equal to 3 ");
             }
         }
 

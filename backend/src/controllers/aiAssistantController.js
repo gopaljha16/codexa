@@ -1,9 +1,19 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const handleAssistantQuery = async (req, res) => {
+  // Validate API key
+  if (!process.env.GEMINI_API_KEY) {
+    return res.status(500).json({ error: 'Server configuration error' });
+  }
+
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+
   try {
     const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ error: 'Query parameter is required' });
+    }
+
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     const platformContext = `
@@ -30,21 +40,31 @@ CodeXa is a one-stop coding platform that offers problem-solving practice, compe
 
 **Available Platform Routes:**
 - /dashboard: User's personal dashboard
-- /contests: List of ongoing and upcoming contests  
+- /contest: List of ongoing and upcoming contests  
 - /premium: Information about premium features
-- /submissions: User's past submissions
 - /interview: AI-powered interview practice
-- /explore: Explore coding problems by topic/difficulty
 - /problems: Main problem listing page
 
 **Instructions:**
-When users ask to navigate somewhere, identify the correct route and respond with {"route": "/path"}.
-For general questions about CodeXa or coding help, provide informative responses about the platform's capabilities.
-Always be helpful, encouraging, and focused on supporting their coding journey.
+Your primary task is to determine if the user's query is a navigation request.
+- If the query is a navigation request (e.g., "take me to dashboard," "show me contests"), you MUST respond with ONLY the JSON object: {"route": "/path"}. Do NOT include any other text, explanation, or conversational filler.
+- If the query is a general question or a request for information, provide a helpful, conversational response.
+- Always be encouraging and supportive of the user's coding journey.
+- Do not add any markdown like \`\`\`json.
+The JSON output is parsed programmatically, so it is critical that for navigation requests, the response contains only the JSON object.
+
+**Strict Navigation Response Example:**
+User query: "go to my dashboard"
+Your response: {"route": "/dashboard"}
+
+**General Question Response Example:**
+User query: "what is CodeXa?"
+Your response: "CodeXa is a comprehensive coding platform designed to help you improve your programming skills..."
     `;
 
     const prompt = `${platformContext}\n\nUser query: "${query}"`;
 
+    // Set SSE headers
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
@@ -52,9 +72,27 @@ Always be helpful, encouraging, and focused on supporting their coding journey.
 
     const result = await model.generateContentStream(prompt);
 
+    let fullResponse = '';
     for await (const chunk of result.stream) {
       const chunkText = chunk.text();
+      fullResponse += chunkText;
+      
+      // Send each chunk as it arrives
       res.write(`data: ${JSON.stringify({ text: chunkText })}\n\n`);
+    }
+
+    // Check if the full response is a navigation request (JSON object)
+    try {
+      const potentialJson = fullResponse.trim();
+      if (potentialJson.startsWith('{') && potentialJson.endsWith('}')) {
+        const jsonResponse = JSON.parse(potentialJson);
+        if (jsonResponse.route) {
+          // If it's a valid navigation response, send it as a special event
+          res.write(`event: navigation\ndata: ${potentialJson}\n\n`);
+        }
+      }
+    } catch (e) {
+      // Not a JSON response, continue with normal text
     }
 
     res.end();

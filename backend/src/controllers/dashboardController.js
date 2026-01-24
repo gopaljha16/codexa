@@ -61,8 +61,17 @@ const getUserRank = async (req, res) => {
 const getAllUserSubmissions = async (req, res) => {
     try {
         const userId = req.result._id;
-        const submissions = await Submission.find({ userId }).sort({ createdAt: -1 });
-        res.json({ submissions });
+        const submissions = await Submission.find({ userId })
+            .populate('problemId', 'title difficulty')
+            .sort({ createdAt: -1 });
+        
+        const formattedSubmissions = submissions.map(sub => ({
+            ...sub.toObject(),
+            title: sub.problemId ? sub.problemId.title : 'Unknown Problem',
+            difficulty: sub.problemId ? sub.problemId.difficulty : 'Unknown',
+        }));
+
+        res.json({ submissions: formattedSubmissions });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -87,8 +96,7 @@ const getHeatmapData = async (req, res) => {
                     _id: {
                         $dateToString: {
                             format: "%Y-%m-%d",
-                            date: "$createdAt",
-                            timezone: "Asia/Kolkata",
+                            date: "$createdAt"
                         },
                     },
                     count: { $sum: 1 },

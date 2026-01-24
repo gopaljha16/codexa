@@ -251,14 +251,15 @@ const Problem = () => {
   };
 
   const isProblemSolved = (problemId) => {
-    // Add debugging to help identify issues
     if (!solvedProblems || !Array.isArray(solvedProblems)) {
-      console.warn('isProblemSolved: solvedProblems is not an array:', solvedProblems);
       return false;
     }
-    
-    const isSolved = solvedProblems.some((sp) => sp && sp._id === problemId);
-    return isSolved;
+    // Check if the first element is a string (problem ID) or an object
+    if (typeof solvedProblems[0] === 'string') {
+      return solvedProblems.includes(problemId);
+    }
+    // Original logic for array of objects
+    return solvedProblems.some((sp) => sp && sp._id === problemId);
   };
 
   // Add a function to refresh solved problems

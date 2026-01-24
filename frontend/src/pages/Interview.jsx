@@ -577,7 +577,7 @@ const Interview = () => {
   // Interview Stage
   if (stage === "interview") {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col">
+      <div className="h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white flex flex-col">
         {isEnding && (
           <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex flex-col items-center justify-center z-50">
             <Loader2 className="w-12 h-12 animate-spin text-orange-500 mb-4" />
@@ -686,7 +686,7 @@ const Interview = () => {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 max-w-5xl mx-auto w-full p-6">
+        <div className="flex-1 max-w-5xl mx-auto w-full p-6 overflow-y-auto">
           <div className="bg-gray-800/30 backdrop-blur-lg rounded-2xl h-full flex flex-col border border-gray-700/50 shadow-2xl">
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-6 space-y-4">

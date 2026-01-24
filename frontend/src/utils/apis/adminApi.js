@@ -19,3 +19,23 @@ export const getPlatformStats = async () => {
         throw error;
     }
 };
+
+export const updateAllUsersProfileImages = async () => {
+    try {
+        const response = await axiosClient.put('/user/admin/update-all-profile-images');
+        return response.data;
+    } catch (error) {
+        console.error('Error updating all users profile images:', error);
+        throw error;
+    }
+};
+
+export const deleteUser = async (userId) => {
+    try {
+        const response = await axiosClient.delete(`/user/admin/user/${userId}`);
+        return response.data;
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        throw error;
+    }
+}

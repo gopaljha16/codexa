@@ -1,10 +1,10 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Route, Routes, Navigate, useParams } from "react-router-dom";
 import Homepage from "./pages/Homepage";
 import Login from "./components/common/Login";
 import Signup from "./components/common/Signup";
 import { useDispatch, useSelector } from "react-redux";
-import { checkAuth, getProfile } from "./slice/authSlice";
+import { checkAuth, getProfile, googleLoginUser } from "./slice/authSlice";
 import Problem from "./pages/Problem";
 import ProblemSolve from "./pages/ProblemSolve";
 import AdminPage from "./pages/AdminPage";
@@ -34,10 +34,16 @@ import { ContestProvider } from "./context/ContestContext";
 import { DSAVisualizer } from "./pages/DSAVisualizer";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Challenge from "./pages/Challenge";
+import ChallengeRoom from "./pages/ChallengeRoom";
 import EmailVerification from "./components/common/EmailVerification"; // Import
 import EmailVerificationPopup from "./components/common/EmailVerificationPopup";
 import DobutAi from "./components/common/DoubtAi";
 import { initializeSocket } from "./utils/socket";
+import V2Announcement, {
+  shouldShowV2Announcement,
+} from "./components/common/V2Announcement";
+import { toast } from "react-toastify";
 
 const ContestLeaderboardWrapper = () => {
   const { contestId } = useParams();
@@ -47,6 +53,8 @@ const ContestLeaderboardWrapper = () => {
 const App = () => {
   const { isAuthenticated, loading, user } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+  const [showV2, setShowV2] = useState(false);
+  const [googleHandled, setGoogleHandled] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -61,15 +69,35 @@ const App = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      // Prefer authToken, fallback to token for backward compatibility
-      const token =
-        localStorage.getItem("authToken") || localStorage.getItem("token");
-      if (token) {
-        initializeSocket(token);
+    // Show announcement once per user (stored in localStorage)
+    if (shouldShowV2Announcement()) {
+      setShowV2(true);
+    }
+  }, []);
+
+  // Handle Google OAuth implicit redirect globally (works with HashRouter)
+  useEffect(() => {
+    if (googleHandled) return;
+    const hash = window.location.hash || "";
+    if (hash.includes("access_token")) {
+      const params = new URLSearchParams(hash.replace(/^#/, ""));
+      const accessToken = params.get("access_token");
+      if (accessToken) {
+        setGoogleHandled(true);
+        (async () => {
+          const res = await dispatch(googleLoginUser(accessToken));
+          if (res?.meta?.requestStatus === "fulfilled") {
+            toast.success("Logged In Successfully with Google");
+            await dispatch(getProfile());
+          } else {
+            toast.error(res?.payload?.message || "Google login failed");
+          }
+          // Normalize URL back to app routes
+          window.location.hash = "#/";
+        })();
       }
     }
-  }, [isAuthenticated]);
+  }, [dispatch, googleHandled]);
 
   if (loading) {
     return (
@@ -82,9 +110,7 @@ const App = () => {
   return (
     <>
       <div>
-        {isAuthenticated && user && !user.emailVerified && (
-          <EmailVerificationPopup user={user} />
-        )}
+        {isAuthenticated && user && !user.emailVerified && <EmailVerificationPopup user={user} />}
         <ContestProvider>
           <Routes>
             <Route path="/" element={<Homepage />} />
@@ -99,6 +125,18 @@ const App = () => {
               path="/dashboard"
               element={
                 isAuthenticated ? <DashboardPage /> : <Navigate to={"/login"} />
+              }
+            />
+            <Route
+              path="/challenge"
+              element={
+                isAuthenticated ? <Challenge /> : <Navigate to={"/login"} />
+              }
+            />
+            <Route
+              path="/challenge/:roomId"
+              element={
+                isAuthenticated ? <ChallengeRoom /> : <Navigate to={"/login"} />
               }
             />
             <Route

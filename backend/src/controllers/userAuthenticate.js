@@ -8,6 +8,7 @@ const Submission = require("../models/submission");
 const Contest = require("../models/contest");
 const Problem = require("../models/problem");
 const jwt = require("jsonwebtoken");
+const { generateProfileImage } = require('../utils/profileImageGenerator');
 
 const cloudinary = require('cloudinary').v2;
 const multer = require("multer");
@@ -65,11 +66,22 @@ const register = async (req, res) => {
             emailVerified: false, // Set emailVerified to false
         });
 
+        // Generate and set profile image
+        if (!newUser.profileImage) {
+            const imageUrl = await generateProfileImage(newUser.firstName, newUser._id);
+            newUser.profileImage = imageUrl;
+        }
+
         await newUser.save();
 
         // Generate JWT token
         const token = jwt.sign({ _id: newUser._id, emailId: newUser.emailId, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: 604800 });
-        res.cookie("token", token, { maxAge: 604800000, httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+        res.cookie("token", token, {
+            maxAge: 604800000,
+            httpOnly: true,
+            sameSite: 'none',  // Required for cross-site cookies
+            secure: true       // Required for HTTPS
+        });
 
         res.status(201).json({
             success: true,
@@ -79,6 +91,7 @@ const register = async (req, res) => {
                 firstName: newUser.firstName,
                 emailId: newUser.emailId,
                 emailVerified: newUser.emailVerified,
+                profileImage: newUser.profileImage,
             },
             token,
         });
@@ -89,12 +102,16 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
     try {
-        const { emailId, password } = req.body;
-        if (!emailId || !password) throw new Error("Credentials Missing");
+        const { emailId, email, password } = req.body;
+        const providedEmail = (emailId || email || "").trim();
+        if (!providedEmail || !password) {
+            return res.status(400).json({ success: false, message: "Credentials Missing" });
+        }
 
-        const user = await User.findOne({ emailId });
+        const normalizedEmail = providedEmail.toLowerCase();
+        const user = await User.findOne({ emailId: normalizedEmail });
         if (!user) {
-            return res.status(403).send("Error Invalid Credentials");
+            return res.status(403).json({ success: false, message: "Invalid credentials" });
         }
 
         if (!user.emailVerified) {
@@ -102,19 +119,31 @@ const login = async (req, res) => {
                 success: false,
                 message: "Email not verified. Please verify your email before logging in.",
                 needsVerification: true,
-                email: emailId
+                email: normalizedEmail
+            });
+        }
+
+        if (!user.password) {
+            return res.status(403).json({
+                success: false,
+                message: "You have registered with a social account. Please use Google to log in.",
             });
         }
 
         const match = await bcrypt.compare(password, user.password);
         if (!match) {
-            return res.status(403).send("Error Invalid Credentials");
+            return res.status(403).json({ success: false, message: "Invalid credentials" });
         }
 
         // Increase token expiration to 7 days (604800 seconds)
         const token = jwt.sign({ _id: user._id, emailId: user.emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 604800 });
         // Increase cookie maxAge to 7 days (604800000 milliseconds)
-        res.cookie("token", token, { maxAge: 604800000, httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production' });
+        res.cookie("token", token, {
+            maxAge: 604800000,
+            httpOnly: true,
+            sameSite: 'none',  // Required for cross-site cookies
+            secure: true       // Required for HTTPS
+        });
 
         const reply = {
             firstName: user.firstName,
@@ -123,9 +152,9 @@ const login = async (req, res) => {
             role: user.role
         };
 
-        res.status(201).json({ user: reply, token, message: "Logged In Successfully" });
+        res.status(201).json({ success: true, user: reply, token, message: "Logged In Successfully" });
     } catch (err) {
-        res.status(403).send("Error " + err);
+        res.status(500).json({ success: false, message: err.message });
     }
 };
 
@@ -296,6 +325,27 @@ const getPlatformStats = async (req, res) => {
     }
 };
 
+const updateAllProfileImages = async (req, res) => {
+    try {
+        const usersWithoutImage = await User.find({ profileImage: { $in: [null, ''] } });
+        let updatedCount = 0;
+
+        for (const user of usersWithoutImage) {
+            try {
+                const imageUrl = await generateProfileImage(user.firstName, user._id);
+                await User.findByIdAndUpdate(user._id, { profileImage: imageUrl });
+                updatedCount++;
+            } catch (error) {
+                console.error(`Failed to update profile image for user: ${user.emailId}`, error);
+            }
+        }
+
+        res.status(200).json({ message: `Updated profile images for ${updatedCount} users.` });
+    } catch (error) {
+        res.status(500).json({ message: 'An error occurred during the update process:', error: error.message });
+    }
+};
+
 const googleLogin = async (req, res) => {
     try {
         const { token } = req.body; // This is the access_token from the frontend
@@ -344,8 +394,8 @@ const googleLogin = async (req, res) => {
         res.cookie("token", jwtToken, {
             maxAge: 604800000, // 7 days
             httpOnly: true,
-            sameSite: 'lax',
-            secure: process.env.NODE_ENV === 'production'
+            sameSite: 'none', // cross-site cookie for api.codexa.live -> codexa.live
+            secure: true
         });
 
         res.status(200).json({
@@ -365,6 +415,16 @@ const googleLogin = async (req, res) => {
     }
 };
 
+const deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        await User.findByIdAndDelete(userId);
+        res.status(200).json({ message: "User deleted successfully" });
+    } catch (err) {
+        res.status(500).json({ message: "Error deleting user", error: err.message });
+    }
+};
+
 
 module.exports = {
     register,
@@ -376,5 +436,7 @@ module.exports = {
     activeUsers,
     googleLogin,
     getAllUsers,
-    getPlatformStats
+    getPlatformStats,
+    updateAllProfileImages,
+    deleteUser
 };

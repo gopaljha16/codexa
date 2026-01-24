@@ -9,3 +9,4 @@ export const fetchUserRank = () => axiosClient.get('/user/rank');
 export const fetchAllUserSubmissions = () => axiosClient.get('/user/submissions');
 export const fetchHeatmapData = () => axiosClient.get('/user/heatmap');
 export const fetchUserActivity = () => axiosClient.get('/problem/profile/problemsSolved');
+export const fetchLeaderboard = () => axiosClient.get('/leaderboard');

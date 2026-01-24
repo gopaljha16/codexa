@@ -25,6 +25,7 @@ import { useAuth } from "../../context/AuthContext.jsx";
 import { useContest } from "../../context/ContestContext";
 import { useDispatch } from "react-redux";
 import { getProfile } from "../../slice/authSlice";
+import { celebrateSuccess, fullCelebration } from "../../utils/celebration";
 
 const ContestProblemSolve = () => {
   const { contestId, problemId } = useParams();
@@ -236,6 +237,9 @@ const ContestProblemSolve = () => {
           showToast("Solution accepted! 🎉", "success");
           dispatch(getProfile());
           setProblemSolved(true);
+          // Trigger celebration animation (choose one)
+          // celebrateSuccess();
+          fullCelebration();
         } else {
           showToast(`Submission status: ${data.submission.status}`, "warning");
         }

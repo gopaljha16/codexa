@@ -53,6 +53,16 @@ const AdminContest = () => {
     setRefresh(!refresh);
   };
 
+  const formatDateTimeLocal = (dateString) => {
+    const date = new Date(dateString);
+    const year = date.getFullYear();
+    const month = (date.getMonth() + 1).toString().padStart(2, '0');
+    const day = date.getDate().toString().padStart(2, '0');
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -248,9 +258,7 @@ const AdminContest = () => {
                     </label>
                     <input
                       type="datetime-local"
-                      value={new Date(editData.startTime)
-                        .toISOString()
-                        .slice(0, 16)}
+                      value={formatDateTimeLocal(editData.startTime)}
                       onChange={(e) =>
                         setEditData({ ...editData, startTime: e.target.value })
                       }
@@ -264,9 +272,7 @@ const AdminContest = () => {
                     </label>
                     <input
                       type="datetime-local"
-                      value={new Date(editData.endTime)
-                        .toISOString()
-                        .slice(0, 16)}
+                      value={formatDateTimeLocal(editData.endTime)}
                       onChange={(e) =>
                         setEditData({ ...editData, endTime: e.target.value })
                       }

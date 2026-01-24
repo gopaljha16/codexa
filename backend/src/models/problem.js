@@ -17,7 +17,7 @@ const ProblemSchema = new Schema({
     },
     tags: {
         type: [String],
-        enum: ["array", "linkedList", "graph", "dp", "function", "stack", "string", "number manipulation", "tree", "binary search", "greedy", "sorting", "searching", "loop", "recursion", "bit manipulation", "hashing", "dynamic programming", "backtracking", "combinatorics", "geometry", "bitwise operations", "game theory", "number theory", "combinatorial optimization", "probability", "data structures", "algorithms", "optimization", "parallel processing", "distributed systems", "networking", "security", "cryptography", "machine learning", "artificial intelligence", "natural language processing", "computer vision", "deep learning", "reinforcement learning", "string", "hashmap", "math", "searching", "queue", "heap", "priority queue", "binary tree", "binary search tree", "AVL tree", "red-black tree", "B-tree", "segment tree", "Fenwick tree", "trie", "disjoint set union", "data structure", "set", "sliding window", "expand around center", "two pointers", "conditional", "comparison", "digits", "conditions", "character", "hashmap", "frequency", "prefix sum", "positive integers", "iteration", "bfs", "missing number"],
+        enum: ["array", "linkedList", "graph", "dp", "function", "stack" , "string", "number manipulation", "tree", "binary search", "greedy", "sorting", "searching" , "loop", "recursion", "bit manipulation", "hashing", "dynamic programming", "backtracking", "combinatorics", "geometry", "bitwise operations", "game theory", "number theory", "combinatorial optimization", "probability", "data structures", "algorithms", "optimization", "parallel processing", "distributed systems", "networking", "security", "cryptography", "machine learning", "artificial intelligence", "natural language processing", "computer vision", "deep learning", "reinforcement learning", "string" , "hashmap" , "math" , "searching", "queue", "heap", "priority queue", "binary tree", "binary search tree", "AVL tree", "red-black tree", "B-tree", "segment tree", "Fenwick tree", "trie", "disjoint set union" ,"data structure", "set", "sliding window", "expand around center", "two pointers"],
         required: true
     },
     visibleTestCases: [
@@ -94,7 +94,7 @@ const ProblemSchema = new Schema({
         ref: "user",
         required: true,
     }
-}, { Timestamp: true })
+}, {Timestamp:true})
 
 const Problem = mongoose.model("problem", ProblemSchema);
 module.exports = Problem;

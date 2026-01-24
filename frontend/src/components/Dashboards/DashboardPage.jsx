@@ -8,8 +8,10 @@ import {
   fetchUserRank,
   fetchAllUserSubmissions,
   fetchHeatmapData,
+  fetchLeaderboard,
 } from "../../utils/apis/dashboardApi";
 import SidebarProfileCard from "./SidebarProfileCard";
+import GlobalLeaderboard from "./GlobalLeaderboard";
 import StatsOverview from "./StatsOverview";
 import HeatmapCalendar from "./HeatmapCalendar";
 import SubmissionsTabs from "./SubmissionsTabs";
@@ -33,6 +35,7 @@ const DashboardPage = () => {
     rank: null,
     fullSubmissions: [],
     activity: [],
+    leaderboard: [],
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -49,6 +52,7 @@ const DashboardPage = () => {
         rankRes,
         submissionsRes,
         activityRes,
+        leaderboardRes,
       ] = await Promise.all([
         dispatch(getProfile()).unwrap(),
         fetchProblemsSolved(),
@@ -58,6 +62,7 @@ const DashboardPage = () => {
         fetchUserRank(),
         fetchAllUserSubmissions(),
         fetchHeatmapData(),
+        fetchLeaderboard(),
       ]);
 
       setDashboardData({
@@ -81,9 +86,14 @@ const DashboardPage = () => {
         rank: rankRes.data,
         fullSubmissions: submissionsRes.data.submissions || [],
         activity: activityRes.data.submissions || [],
+        leaderboard: leaderboardRes.data.leaderboard || [],
       });
     } catch (err) {
-      setError(err.response?.data?.message || err.message || "Failed to fetch dashboard data");
+      setError(
+        err.response?.data?.message ||
+          err.message ||
+          "Failed to fetch dashboard data"
+      );
     } finally {
       setLoading(false);
     }
@@ -127,6 +137,9 @@ const DashboardPage = () => {
             stats={dashboardData.allProblems}
             rank={dashboardData.rank?.rank}
           />
+          {dashboardData.leaderboard.length > 0 && (
+            <GlobalLeaderboard leaderboard={dashboardData.leaderboard} />
+          )}
         </div>
 
         {/* Main Content - Right Column */}
@@ -156,22 +169,28 @@ const DashboardPage = () => {
                   View all →
                 </button>
               </div>
-              
+
               <div className="space-y-4">
                 {dashboardData.allProblems?.problems?.length > 0 ? (
-                  dashboardData.allProblems.problems.slice(0, 5).map((problem) => (
-                    <div
-                      key={problem._id}
-                      className="group p-4 rounded-xl border border-gray-700 hover:border-orange-500/50 bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-300 cursor-pointer"
-                    >
-                      <ProblemCard problem={problem} compact />
-                    </div>
-                  ))
+                  dashboardData.allProblems.problems
+                    .slice(0, 5)
+                    .map((problem) => (
+                      <div
+                        key={problem._id}
+                        className="group p-4 rounded-xl border border-gray-700 hover:border-orange-500/50 bg-gray-800/50 hover:bg-gray-700/50 transition-all duration-300 cursor-pointer"
+                      >
+                        <ProblemCard problem={problem} compact />
+                      </div>
+                    ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-12 text-center">
                     <div className="text-6xl mb-4 opacity-50">🚀</div>
-                    <div className="text-gray-400 text-lg mb-2">No problems solved yet</div>
-                    <div className="text-gray-500 text-sm mb-4">Start your coding journey today!</div>
+                    <div className="text-gray-400 text-lg mb-2">
+                      No problems solved yet
+                    </div>
+                    <div className="text-gray-500 text-sm mb-4">
+                      Start your coding journey today!
+                    </div>
                     <button className="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors duration-200 font-semibold">
                       Solve Your First Problem
                     </button>
@@ -182,8 +201,8 @@ const DashboardPage = () => {
           </div>
 
           {/* Submissions Tabs */}
-          <SubmissionsTabs 
-            submissions={dashboardData.fullSubmissions} 
+          <SubmissionsTabs
+            submissions={dashboardData.fullSubmissions}
             loading={loading}
           />
         </div>
@@ -196,10 +215,12 @@ const ErrorDisplay = ({ message }) => (
   <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-900 to-black">
     <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-8 max-w-md text-center backdrop-blur-sm">
       <div className="text-6xl mb-4">⚠️</div>
-      <h3 className="text-2xl font-bold text-red-400 mb-4">Oops! Something went wrong</h3>
+      <h3 className="text-2xl font-bold text-red-400 mb-4">
+        Oops! Something went wrong
+      </h3>
       <p className="text-gray-300 mb-6">{message}</p>
-      <button 
-        onClick={() => window.location.reload()} 
+      <button
+        onClick={() => window.location.reload()}
         className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors duration-200 font-semibold"
       >
         Try Again

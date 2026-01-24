@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logutUser } from "../../slice/authSlice";
-import axiosClient from "../../utils/axiosClient";
 import "./AiAssistant.css";
 
 const AiAssistant = () => {
@@ -41,7 +40,6 @@ const AiAssistant = () => {
     { text: "🏠 Go to Dashboard", action: () => handleQuickAction("take me to dashboard") },
     { text: "🏆 View Contests", action: () => handleQuickAction("show me contests") },
     { text: "💎 Premium Features", action: () => handleQuickAction("what are premium features") },
-    { text: "❓ Ask a Doubt", action: () => handleQuickAction("I want to ask a doubt") },
     { text: "📊 Problems", action: () => handleQuickAction("show problems") }
   ];
 
@@ -88,12 +86,17 @@ const AiAssistant = () => {
         return;
       }
 
-      const response = await axiosClient.get(`/ai/assistant?query=${encodeURIComponent(messageText)}`, {
+      const baseURL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+      const response = await fetch(`${baseURL}/ai/assistant?query=${encodeURIComponent(messageText)}`, {
         headers: {
           'Accept': 'text/event-stream',
+          'Authorization': `Bearer ${token}`
         },
-        responseType: 'stream'
       });
+
+      if (!response.body) {
+        throw new Error("Streaming not supported or response body is empty.");
+      }
       
       let fullResponse = "";
       let aiMessageIndex = -1;
@@ -104,7 +107,7 @@ const AiAssistant = () => {
         return newMessages;
       });
 
-      const reader = response.data.getReader();
+      const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let buffer = '';
 

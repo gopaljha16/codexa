@@ -46,6 +46,17 @@ const submitCode = async (req, res) => {
         });
         console.log("submitCode: Submission created with pending status");
 
+        // Emit immediate update so heatmap updates right after user submits
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(userId.toString()).emit('userStatsUpdate', { userId, source: 'submissionCreated' });
+                console.log(`submitCode: Emitted userStatsUpdate (submissionCreated) to user ${userId}.`);
+            }
+        } catch (emitErr) {
+            console.warn("submitCode: Unable to emit userStatsUpdate after initial create:", emitErr.message);
+        }
+
         //now judge0 code submit 
         const languageId = await getLanguageById(language);
         if (!languageId) {
@@ -122,14 +133,6 @@ const submitCode = async (req, res) => {
         await submittedResult.save();
         console.log("submitCode: Submission updated with results");
 
-        // Clear any cached heatmap data for this user (if caching is enabled)
-        try {
-            await redisWrapper.del(`heatmap_${userId}`);
-            console.log(`submitCode: Cleared heatmap cache for user ${userId}`);
-        } catch (cacheErr) {
-            console.warn("submitCode: Unable to clear heatmap cache:", cacheErr?.message || cacheErr);
-        }
-
         // after submission saving it to the problem Id - only if status is Accepted
         console.log("submitCode: Checking if problem is already solved. Status:", status);
         console.log("submitCode: User's problemSolved array:", req.result.problemSolved);
@@ -144,7 +147,11 @@ const submitCode = async (req, res) => {
                 );
                 if (updatedUser) {
                     console.log("submitCode: User problemSolved array updated successfully.");
-                    // Emission moved below to cover all submissions
+                    const io = getIO();
+                    if (io) {
+                        io.to(userId.toString()).emit('userStatsUpdate', { userId });
+                        console.log(`submitCode: Emitted userStatsUpdate event to user ${userId}.`);
+                    }
                 } else {
                     console.log("submitCode: User not found for update.");
                 }

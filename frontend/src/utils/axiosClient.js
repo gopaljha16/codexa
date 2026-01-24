@@ -1,45 +1,42 @@
-import axios from "axios"
+import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_URL;
+const baseURL = "https://api.codexa.live/api";
 
-if (baseURL === undefined) {
-  throw new Error("VITE_API_URL is not defined in environment variables");
+if (!baseURL) {
+  throw new Error("API base URL is not defined");
 }
 
 const axiosClient = axios.create({
-    baseURL: baseURL || "http://localhost:3000/api",
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json'
-    }
+  baseURL,
+  withCredentials: true,
+  headers: {
+    "Content-Type": "application/json"
+  }
 });
 
-
-
+// Request interceptor
 axiosClient.interceptors.request.use((config) => {
-  // Prefer 'authToken' but support legacy 'token'
-  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+  const token = localStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   } else {
     delete config.headers.Authorization;
   }
+
   return config;
 });
 
-// Add response interceptor to handle token expiration
+// Response interceptor
 axiosClient.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response) {
       const { status, data } = error.response;
-      if (status === 401 && (data?.message?.toLowerCase()?.includes('expired') || data?.message === 'Session expired')) {
-        // Clear any stale tokens so login works cleanly
-        try {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('token');
-          // Keep 'user' intact until app state updates
-        } catch {}
+      // Temporarily disable automatic logout for token expiration
+      // This is a workaround for the system date issue (2025)
+      if (status === 401 && data.message === "Token expired, please login again") {
+        console.warn("Token expiration detected but ignoring due to system date issue");
+        // Don't clear user session or redirect
       }
     }
     return Promise.reject(error);

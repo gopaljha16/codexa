@@ -140,6 +140,9 @@ const UploadVideo = () => {
         cloudinaryPublicId: cloudinaryResult.public_id,
         secureUrl: cloudinaryResult.secure_url,
         duration: cloudinaryResult.duration,
+        title: formData.title,
+        description: formData.description,
+        tags: formData.tags,
       });
 
       setUploadedVideo(metadataResponse.data.videoSolution);

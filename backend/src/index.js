@@ -18,8 +18,10 @@ const payRoute = require("./routes/payment");
 const interviewRouter = require("./routes/aiInterview");
 const contestRouter = require("./routes/contestRoute");
 const playlistRouter = require("./routes/playlistRoute");
+const challengeRouter = require("./routes/challengeRoute");
 const discussionRouter = require("./routes/discussionRoute");
 const dsaRouter = require("./routes/dsa");
+const leaderboardRouter = require("./routes/leaderboardRoute");
 
 const { autoFinalizeContestRankings } = require("./controllers/leaderboardController");
 const cron = require("node-cron");
@@ -28,8 +30,8 @@ const cron = require("node-cron");
 const PORT_NO = process.env.PORT_NO;
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://codexa.live'],
-  credentials: true
+    origin: ['http://localhost:5173', 'https://codexa.live', 'https://www.codexa.live', 'https://api.codexa.live'],
+    credentials: true
 }))
 
 app.use(express.json());
@@ -48,6 +50,8 @@ app.use("/api/contest", contestRouter)
 app.use('/api/playlists', playlistRouter);
 app.use('/api/discussions', discussionRouter);
 app.use("/api/dsa", dsaRouter);
+app.use("/api", leaderboardRouter);
+app.use("/api", challengeRouter);
 
 const initialConnection = async () => {
     try {
