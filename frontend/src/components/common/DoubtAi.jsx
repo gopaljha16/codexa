@@ -46,7 +46,8 @@ function DobutAi({ problem }) {
 
   useEffect(() => {
     dispatch(getProfile());
-    const token = localStorage.getItem("authToken");
+    const token =
+      localStorage.getItem("authToken") || localStorage.getItem("token");
     if (token) {
       initializeSocket(token);
     }
@@ -72,8 +73,7 @@ function DobutAi({ problem }) {
 
   const detectLanguage = (code) => {
     // Simple language detection based on code patterns
-    if (code.includes("function"))
-      return "javascript";
+    if (code.includes("function")) return "javascript";
     if (code.includes("def ") || code.includes("import ")) return "python";
     if (code.includes("public class") || code.includes("System.out.println"))
       return "java";
@@ -406,10 +406,10 @@ function DobutAi({ problem }) {
       }
 
       const response = await fetch(`/api/ai/chat`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({
           messages: [...messages, userMessage],
@@ -417,7 +417,7 @@ function DobutAi({ problem }) {
           description: problem?.description,
           testCases: problem?.visibleTestCases,
           startCode: problem?.startCode,
-        })
+        }),
       });
 
       if (!response.ok) {
@@ -635,8 +635,14 @@ function DobutAi({ problem }) {
                       {msg.streaming && msg.parts[0].text.length === 0 ? (
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                          <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                          <div
+                            className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                          <div
+                            className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"
+                            style={{ animationDelay: "0.4s" }}
+                          ></div>
                         </div>
                       ) : (
                         formatMessage(msg.parts[0].text)

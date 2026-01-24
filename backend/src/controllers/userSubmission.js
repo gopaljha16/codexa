@@ -3,6 +3,7 @@ const Submission = require("../models/submission")
 const User = require("../models/user")
 const { getLanguageById, submitToken, SubmitBatch } = require("../utils/problemUtility")
 const { getIO } = require('../config/socket');
+const redisWrapper = require("../config/redis");
 
 
 
@@ -121,6 +122,14 @@ const submitCode = async (req, res) => {
         await submittedResult.save();
         console.log("submitCode: Submission updated with results");
 
+        // Clear any cached heatmap data for this user (if caching is enabled)
+        try {
+            await redisWrapper.del(`heatmap_${userId}`);
+            console.log(`submitCode: Cleared heatmap cache for user ${userId}`);
+        } catch (cacheErr) {
+            console.warn("submitCode: Unable to clear heatmap cache:", cacheErr?.message || cacheErr);
+        }
+
         // after submission saving it to the problem Id - only if status is Accepted
         console.log("submitCode: Checking if problem is already solved. Status:", status);
         console.log("submitCode: User's problemSolved array:", req.result.problemSolved);
@@ -135,11 +144,7 @@ const submitCode = async (req, res) => {
                 );
                 if (updatedUser) {
                     console.log("submitCode: User problemSolved array updated successfully.");
-                    const io = getIO();
-                    if (io) {
-                        io.to(userId.toString()).emit('userStatsUpdate', { userId });
-                        console.log(`submitCode: Emitted userStatsUpdate event to user ${userId}.`);
-                    }
+                    // Emission moved below to cover all submissions
                 } else {
                     console.log("submitCode: User not found for update.");
                 }
@@ -148,6 +153,17 @@ const submitCode = async (req, res) => {
                 // Decide if this should be a critical error. For now, we'll just log it
                 // and allow the submission to be considered successful.
             }
+        }
+
+        // Emit a real-time update for this user's dashboard regardless of verdict
+        try {
+            const io = getIO();
+            if (io) {
+                io.to(userId.toString()).emit('userStatsUpdate', { userId });
+                console.log(`submitCode: Emitted userStatsUpdate event to user ${userId}.`);
+            }
+        } catch (emitErr) {
+            console.warn("submitCode: Failed to emit userStatsUpdate:", emitErr?.message || emitErr);
         }
 
         const accepted = (status == 'Accepted');

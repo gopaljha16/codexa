@@ -1,0 +1,66 @@
+# services - >frontend , backend  , judeg0 services
+
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: "codexa-frontend"
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - codexa-prod
+
+  backend:
+    build:
+      context: ./backend
+    container_name: "codexa-backend"
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - judge0 
+    networks:
+      - codexa-prod
+
+  judge0:
+    image: judge0/judge0:latest
+    container_name: codexa-judge0
+    ports:
+      - "2358:2358"
+    environment:
+      - REDIS_HOST=judge0-redis
+      - POSTGRES_HOST=judge0-postgres
+    depends_on:
+      - judge0-redis
+      - judge0-postgres
+    networks:
+      - codexa-prod
+
+  judge0-redis:
+    image: redis:7
+    container_name: codexa-judge0-redis
+    networks:
+      - codexa-prod
+
+
+  judge0-postgres:
+    image: postgres:15
+    container_name: codexa-judge0-postgres
+    environment:
+      POSTGRES_USER: judge
+      POSTGRES_PASSWORD: judge
+      POSTGRES_DB: judge0
+    volumes:
+      - judge0-db:/var/lib/postgresql/data
+    networks:
+      - codexa-prod
+
+volumes:
+  judge0-db: {}
+
+networks:
+  codexa-prod: 

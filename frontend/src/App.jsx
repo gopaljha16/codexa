@@ -62,7 +62,9 @@ const App = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      const token = localStorage.getItem("token");
+      // Prefer authToken, fallback to token for backward compatibility
+      const token =
+        localStorage.getItem("authToken") || localStorage.getItem("token");
       if (token) {
         initializeSocket(token);
       }
@@ -80,7 +82,9 @@ const App = () => {
   return (
     <>
       <div>
-        {isAuthenticated && user && !user.emailVerified && <EmailVerificationPopup user={user} />}
+        {isAuthenticated && user && !user.emailVerified && (
+          <EmailVerificationPopup user={user} />
+        )}
         <ContestProvider>
           <Routes>
             <Route path="/" element={<Homepage />} />
@@ -226,8 +230,6 @@ const App = () => {
                 )
               }
             />
-           
-
             <Route
               path="/contest/:contestId/problem/:problemId"
               element={
@@ -267,7 +269,11 @@ const App = () => {
             <Route
               path="/premium-dashboard"
               element={
-                isAuthenticated ? <PremiumDashboard /> : <Navigate to={"/login"} />
+                isAuthenticated ? (
+                  <PremiumDashboard />
+                ) : (
+                  <Navigate to={"/login"} />
+                )
               }
             />
             <Route
@@ -295,23 +301,14 @@ const App = () => {
             <Route
               path="/doubt-ai"
               element={
-                isAuthenticated ? (
-                  <DobutAi />
-                ) : (
-                  <Navigate to={"/login"} />
-                )
+                isAuthenticated ? <DobutAi /> : <Navigate to={"/login"} />
               }
             />
-             <Route
+            <Route
               path="/visualizer"
               element={
-                isAuthenticated ? (
-                  <DSAVisualizer />
-                ) : (
-                  <Navigate to={"/login"} />
-                )
+                isAuthenticated ? <DSAVisualizer /> : <Navigate to={"/login"} />
               }
-              
             />
           </Routes>
         </ContestProvider>

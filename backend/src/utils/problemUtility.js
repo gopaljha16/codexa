@@ -1,115 +1,59 @@
-const axios = require('axios');
+const axios = require("axios");
 
+const JUDGE0_URL = process.env.JUDGE0_URL;
 
 const getLanguageById = (lang) => {
-  const normalizedLang = lang.toLowerCase();
-  const language = {
-    "c++": 54,
+  const map = {
+    "c": 50,
     "cpp": 54,
-    "java": 91,
-    "javascript": 93
+    "c++": 54,
+    "java": 62,
+    "javascript": 63,
+    "python": 71
   };
 
-  return language[normalizedLang];
+  return map[lang.toLowerCase()];
 };
 
-
-const SubmitBatch = async (submissions) => {
-  // axios using
-  const options = {
-    method: 'POST',
-    url: 'https://judge0-ce.p.rapidapi.com/submissions/batch',
-    params: {
-      base64_encoded: 'false'
-    },
-    headers: {
-      'x-rapidapi-key': process.env.JUDGE_0_API_KEY,
-      'x-rapidapi-host': process.env.JUDGE_0_HOST_API,
-      'Content-Type': 'application/json'
-    },
-    data: {
-      submissions
+// Submit batch
+const submitBatch = async (submissions) => {
+  const res = await axios.post(
+    `${JUDGE0_URL}/submissions/batch`,
+    { submissions },
+    {
+      params: { base64_encoded: false }
     }
-  };
+  );
 
-  async function fetchData() {
-    try {
-      const response = await axios.request(options);
-      return response.data;
-    } catch (error) {
-      console.log(error)
-      throw error;
-    }
-  }
+  return res.data;
+};
 
-  return await fetchData();
-}
-
-const waiting = (timer) => {
-  return new Promise(resolve => setTimeout(resolve, timer));
-}
-
-const submitToken = async (resultToken) => {
-
-
-  const options = {
-    method: 'GET',
-    url: 'https://judge0-ce.p.rapidapi.com/submissions/batch',
-    params: {
-      tokens: resultToken.join(","),
-      base64_encoded: 'false',
-      fields: '*'
-    },
-    headers: {
-      'x-rapidapi-key': process.env.JUDGE_0_API_KEY,
-      'x-rapidapi-host': process.env.JUDGE_0_HOST_API
-    }
-  };
-
-  async function fetchData() {
-    let retryCount = 0;
-    const maxRetries = 5;
-    const baseDelay = 1000; // 1 second
-
-    while (true) {
-      try {
-        const response = await axios.request(options);
-        return response.data;
-      } catch (error) {
-        if (error.response && error.response.status === 429) {
-          // Too Many Requests - implement exponential backoff
-          if (retryCount >= maxRetries) {
-            throw new Error('Exceeded maximum retries due to rate limiting');
-          }
-          const delay = baseDelay * Math.pow(2, retryCount);
-          console.warn(`Rate limited by Judge0 API. Retrying after ${delay} ms...`);
-          await waiting(delay);
-          retryCount++;
-        } else {
-          console.error(error);
-          throw error;
+// Poll results
+const getBatchResults = async (tokens) => {
+  while (true) {
+    const res = await axios.get(
+      `${JUDGE0_URL}/submissions/batch`,
+      {
+        params: {
+          tokens: tokens.join(","),
+          base64_encoded: false,
+          fields: "*"
         }
       }
-    }
+    );
+
+    const done = res.data.submissions.every(
+      (s) => s.status.id > 2
+    );
+
+    if (done) return res.data.submissions;
+
+    await new Promise((r) => setTimeout(r, 1000));
   }
+};
 
-
-  while (true) {
-
-    const result = await fetchData();
-
-
-    // here the result status id should be greater than 2 or else call again 
-    const isResultObtained = await result.submissions.every((r) => r.status.id > 2);
-
-    if (isResultObtained) {
-      return result.submissions;
-    }
-
-    // here calling the function again after 1second  
-
-    await waiting(1000);
-  }
-}
-
-module.exports = { getLanguageById, SubmitBatch, submitToken }
+module.exports = {
+  getLanguageById,
+  submitBatch,
+  getBatchResults
+};

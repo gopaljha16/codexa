@@ -1,24 +1,44 @@
-# Logs
-logs
+.env
+.env.*
+!.env.example
+
+node_modules/
+
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
-yarn-error.log*
 pnpm-debug.log*
-lerna-debug.log*
+pm2.log
 
-node_modules
+pids/
+*.pid
+*.pid.lock
+dump.pm2
 
-dist-ssr
-*.local
+dist/
+build/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
+coverage/
+.nyc_output/
+
+.cache/
+.eslintcache
+
+*.rdb
+*.dump
+mongo-data/
+redis-data/
+
+uploads/
+tmp/
+temp/
+
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*.swo
+
+docker-data/

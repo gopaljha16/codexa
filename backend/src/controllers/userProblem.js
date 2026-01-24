@@ -41,8 +41,15 @@ const createProblem = async (req, res) => {
 
             // check the test cases
             for (const test of testResult) {
-                if (test.status_id != 3)
-                    return res.status(400).send("Error Occured Status_code is not equal to 3 ");
+                if (test.status_id !== 3) {
+                    let errorMessage = `Test case failed. Status: ${test.status.description}.`;
+                    if (test.status_id === 6) { // Compilation Error
+                        errorMessage = `Compilation Error: ${Buffer.from(test.compile_output, 'base64').toString('utf-8')}`;
+                    } else if (test.stderr) {
+                        errorMessage += ` Error: ${Buffer.from(test.stderr, 'base64').toString('utf-8')}`;
+                    }
+                    return res.status(400).send(errorMessage);
+                }
             }
         }
 
@@ -109,8 +116,15 @@ const updateProblem = async (req, res) => {
 
             // check the test cases
             for (const test of testResult) {
-                if (test.status_id != 3)
-                    return res.status(400).send("Error Occured Status_code is not equal to 3 ");
+                if (test.status_id !== 3) {
+                    let errorMessage = `Test case failed. Status: ${test.status.description}.`;
+                    if (test.status_id === 6) { // Compilation Error
+                        errorMessage = `Compilation Error: ${Buffer.from(test.compile_output, 'base64').toString('utf-8')}`;
+                    } else if (test.stderr) {
+                        errorMessage += ` Error: ${Buffer.from(test.stderr, 'base64').toString('utf-8')}`;
+                    }
+                    return res.status(400).send(errorMessage);
+                }
             }
 
             // update the problem 
@@ -302,7 +316,7 @@ const getProfileProblemsSolved = async (req, res) => {
             const offset = 5.5 * 60 * 60 * 1000;
             const adjustedDate = new Date(date.getTime() + offset);
             const dateStr = adjustedDate.toISOString().split('T')[0];
-            
+
             if (!acc[dateStr]) {
                 acc[dateStr] = { date: dateStr, count: 0 };
             }
