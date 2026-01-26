@@ -1,7 +1,7 @@
+version: "3.8"
 
 services:
-
-    judge0:
+  judge0:
     image: judge0/judge0:latest
     container_name: codexa-judge0
     ports:
@@ -24,47 +24,46 @@ services:
       - codexa-prod
     restart: unless-stopped
 
-    judge0-worker:
-      image: judge0/judge0:latest
-      container_name: codexa-judge0-worker
-      command: ["./scripts/workers"]
-      environment:
-        - REDIS_HOST=judge0-redis
-        - REDIS_PORT=6379
-        - POSTGRES_HOST=judge0-postgres
-        - POSTGRES_PORT=5432
-        - POSTGRES_USER=judge
-        - POSTGRES_PASSWORD=judge
-        - POSTGRES_DB=judge0
-      depends_on:
-        - judge0-redis
-        - judge0-postgres
-      networks:
-        - codexa-prod
-      restart: unless-stopped
-      privileged: true
+  judge0-worker:
+    image: judge0/judge0:latest
+    container_name: codexa-judge0-worker
+    command: ["./scripts/workers"]
+    environment:
+      - REDIS_HOST=judge0-redis
+      - REDIS_PORT=6379
+      - POSTGRES_HOST=judge0-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=judge
+      - POSTGRES_PASSWORD=judge
+      - POSTGRES_DB=judge0
+    depends_on:
+      - judge0-redis
+      - judge0-postgres
+    networks:
+      - codexa-prod
+    restart: unless-stopped
+    privileged: true
 
-    judge0-redis:
-      image: redis:7
-      container_name: codexa-judge0-redis
-      networks:
+  judge0-redis:
+    image: redis:7
+    container_name: codexa-judge0-redis
+    networks:
       - codexa-prod
 
-
-    judge0-postgres:
-      image: postgres:15
-      container_name: codexa-judge0-postgres
-      environment:
-        POSTGRES_USER: judge
-        POSTGRES_PASSWORD: judge
-        POSTGRES_DB: judge0
-      volumes:
-        - judge0-db:/var/lib/postgresql/data
-      networks:
-        - codexa-prod
+  judge0-postgres:
+    image: postgres:15
+    container_name: codexa-judge0-postgres
+    environment:
+      POSTGRES_USER: judge
+      POSTGRES_PASSWORD: judge
+      POSTGRES_DB: judge0
+    volumes:
+      - judge0-db:/var/lib/postgresql/data
+    networks:
+      - codexa-prod
 
 volumes:
-  judge0-db: {}
+  judge0-db:
 
 networks:
-  codexa-prod: 
+  codexa-prod:
