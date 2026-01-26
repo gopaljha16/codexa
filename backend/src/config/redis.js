@@ -53,7 +53,7 @@ const safeRedisOperation = async (operation, ...args) => {
 
 // Create a wrapper around the Redis client to handle connection issues gracefully
 const redisWrapper = {
-    // Original client for direct access if needed
+
     client: redisClient,
     
     // Wrap common Redis operations with error handling
