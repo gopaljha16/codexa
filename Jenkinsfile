@@ -16,10 +16,21 @@ pipeline {
                 echo "Code cloned successfully!"
             }
         }
-       stage("Done clone"){
-        steps{
-            echo "check code if pushed and cloned sucessfully"
+        stage("Docker Login") {
+            steps {
+                withCredentials([
+                usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+            )
+        ]) {
+            sh '''
+                echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+            '''
         }
+    }
+}
        }
     }
 }
