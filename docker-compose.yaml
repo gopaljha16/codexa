@@ -21,71 +21,9 @@ services:
       - judge0 
     networks:
       - codexa-prod
-
-  judge0:
-    image: judge0/judge0:latest
-    container_name: codexa-judge0
-    ports:
-      - "2358:2358"
     environment:
-      - REDIS_HOST=judge0-redis
-      - REDIS_PORT=6379
-      - POSTGRES_HOST=judge0-postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=judge
-      - POSTGRES_PASSWORD=judge
-      - POSTGRES_DB=judge0
-      - ENABLE_WAIT_RESULT=true
-      - ENABLE_COMPILER_OPTIONS=true
-      - ALLOWED_LANGUAGES_FOR_COMPILE_OPTIONS=44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100
-    depends_on:
-      - judge0-redis
-      - judge0-postgres
-    networks:
-      - codexa-prod
-    restart: unless-stopped
+      - JUDGE0_BASE_URL=http://JUDGE0_SERVER_IP:2358
 
-  judge0-worker:
-    image: judge0/judge0:latest
-    container_name: codexa-judge0-worker
-    command: ["./scripts/workers"]
-    environment:
-      - REDIS_HOST=judge0-redis
-      - REDIS_PORT=6379
-      - POSTGRES_HOST=judge0-postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_USER=judge
-      - POSTGRES_PASSWORD=judge
-      - POSTGRES_DB=judge0
-    depends_on:
-      - judge0-redis
-      - judge0-postgres
-    networks:
-      - codexa-prod
-    restart: unless-stopped
-    privileged: true
-
-  judge0-redis:
-    image: redis:7
-    container_name: codexa-judge0-redis
-    networks:
-      - codexa-prod
-
-
-  judge0-postgres:
-    image: postgres:15
-    container_name: codexa-judge0-postgres
-    environment:
-      POSTGRES_USER: judge
-      POSTGRES_PASSWORD: judge
-      POSTGRES_DB: judge0
-    volumes:
-      - judge0-db:/var/lib/postgresql/data
-    networks:
-      - codexa-prod
-
-volumes:
-  judge0-db: {}
 
 networks:
   codexa-prod: 
