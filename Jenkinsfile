@@ -12,8 +12,10 @@ pipeline {
         stage("Checkout Code") {
             steps {
                 echo "Cloning repository..."
-                git branch: 'main',
+                git(
+                    branch: 'main',
                     url: 'https://github.com/gopaljha16/codexa.git'
+                )
                 echo "Code cloned successfully!"
             }
         }
@@ -22,7 +24,7 @@ pipeline {
             steps {
                 withCredentials([
                     usernamePassword(
-                        credentialsId: 'dockerhub',   // 👈 make sure this exists
+                        credentialsId: 'dockerhub',
                         usernameVariable: 'DOCKER_USER',
                         passwordVariable: 'DOCKER_PASS'
                     )
@@ -43,9 +45,5 @@ pipeline {
                 echo "Images built successfully"
             }
         }
-
- 
     }
-
-
 }
