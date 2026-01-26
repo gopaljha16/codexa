@@ -54,6 +54,6 @@ const getBatchResults = async (tokens) => {
 
 module.exports = {
   getLanguageById,
-  submitBatch,
-  getBatchResults
+  SubmitBatch: submitBatch,
+  submitToken: getBatchResults
 };

@@ -147,7 +147,8 @@ const ProblemPage = () => {
     setSelectedLanguage(language);
   };
 
-  const handleRun = async () => {
+  const handleRun = async (e) => {
+    e?.preventDefault();
     setLoading(true);
     setRunResult(null);
     setShowConsole(true);
@@ -172,7 +173,8 @@ const ProblemPage = () => {
     }
   };
 
-  const handleSubmitCode = async () => {
+  const handleSubmitCode = async (e) => {
+    e?.preventDefault();
     setLoading(true);
     setSubmitResult(null);
 
@@ -983,6 +985,7 @@ const ProblemPage = () => {
 
                   <div className="flex items-center space-x-3">
                     <button
+                      type="button"
                       className={`flex items-center space-x-2 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-all duration-200 shadow-sm border border-gray-700 ${
                         loading ? "opacity-50 cursor-not-allowed" : ""
                       }`}
@@ -998,6 +1001,7 @@ const ProblemPage = () => {
                     </button>
 
                     <button
+                      type="button"
                       className={`flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-lg hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-md border border-orange-600 ${
                         loading ? "opacity-50 cursor-not-allowed" : ""
                       }`}

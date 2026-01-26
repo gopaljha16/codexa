@@ -5,10 +5,17 @@ const User = require("../models/user");
 
 const adminMiddleware = async (req , res , next) =>{
     try{
+        let token = req.cookies.token;
 
-        const {token} = req.cookies;
+        // If no cookie, check Authorization header
+        if (!token) {
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+                token = authHeader.substring(7);
+            }
+        }
 
-        if(!token)
+        if (!token)
             throw new Error("Invalid Token");
 
         //validate the token

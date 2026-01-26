@@ -45,7 +45,7 @@ app.use("/api/submission", submissionRouter)
 app.use("/api/ai", aiRouter)
 app.use("/api/video", videoRouter)
 app.use("/api/payments", payRoute);
-app.use("/api/ai", interviewRouter);
+app.use("/api/interview", interviewRouter);
 app.use("/api/contest", contestRouter)
 app.use('/api/playlists', playlistRouter);
 app.use('/api/discussions', discussionRouter);

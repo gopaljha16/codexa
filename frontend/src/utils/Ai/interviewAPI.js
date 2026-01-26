@@ -6,12 +6,12 @@ export const createInterviewSession = async (file, candidateInfo) => {
   try {
     // First upload the resume
     const uploadResult = await interviewAPI.uploadResume(file);
-    
+
     // Backend returns {success: true, data: {...}} directly now
     if (!uploadResult || !uploadResult.success) {
       throw new Error(uploadResult?.error || 'Resume upload failed');
     }
-    
+
     // Get the extracted text from the upload response
     // Check if text property exists in the response
     // The backend returns a nested structure: {success: true, data: {text: "...", ...}}
@@ -19,20 +19,20 @@ export const createInterviewSession = async (file, candidateInfo) => {
       console.error('Invalid upload response:', uploadResult);
       throw new Error('Resume text extraction failed. Please try a different file.');
     }
-    
+
     // Handle nested data structure
     const resumeData = uploadResult.data;
     if (!resumeData.text) {
       console.error('No text found in upload response:', resumeData);
       throw new Error('Resume text extraction failed. Please try a different file.');
     }
-    
+
     const resumeText = resumeData.text;
-    
+
     // DEBUG: Log extracted text
     console.log('Extracted Resume Text:', resumeText.substring(0, 100) + '...');
     console.log('Text Length:', resumeText.length);
-    
+
     // Then create session with the uploaded resume data
     const sessionResult = await interviewAPI.createSession({
       resumeText, // This is the key expected by createSession
@@ -43,11 +43,11 @@ export const createInterviewSession = async (file, candidateInfo) => {
         email: candidateInfo?.email || ''
       }
     });
-    
+
     if (!sessionResult.success) {
       throw new Error(sessionResult.error);
     }
-    
+
     return sessionResult.data;
   } catch (error) {
     console.error('❌ Create session error:', error);
@@ -58,7 +58,7 @@ export const createInterviewSession = async (file, candidateInfo) => {
 // Update createSession API call
 const createSession = async (sessionData) => {
   try {
-    const response = await axiosClient.post('/ai/create-session', sessionData);
+    const response = await axiosClient.post('/interview/create-session', sessionData);
 
     return {
       success: true,
@@ -87,7 +87,7 @@ export const interviewAPI = {
         };
       }
 
-      const response = await axiosClient.post('/ai/create-session', {
+      const response = await axiosClient.post('/interview/create-session', {
         resumeText: resumeData.resumeText, // Using the property name from createInterviewSession
         fileName: resumeData.fileName,
         fileSize: resumeData.fileSize,
@@ -122,10 +122,10 @@ export const interviewAPI = {
       }
 
       // Extract the answer text, ensuring it's a string
-      const userAnswerText = typeof answerData.text === 'string' 
-        ? answerData.text.trim() 
+      const userAnswerText = typeof answerData.text === 'string'
+        ? answerData.text.trim()
         : (typeof answerData === 'string' ? answerData.trim() : '');
-      
+
       if (!userAnswerText) {
         return {
           success: false,
@@ -133,7 +133,7 @@ export const interviewAPI = {
         };
       }
 
-      const response = await axiosClient.post('/ai/continue', {
+      const response = await axiosClient.post('/interview/continue', {
         sessionId,
         userAnswer: userAnswerText,
         responseTime: answerData.responseTime,
@@ -155,7 +155,7 @@ export const interviewAPI = {
   // End interview session
   endInterview: async (sessionId) => {
     try {
-      const response = await axiosClient.post('/ai/end', {
+      const response = await axiosClient.post('/interview/end', {
         sessionId,
         endTime: new Date().toISOString()
       });
@@ -175,7 +175,7 @@ export const interviewAPI = {
   // Get session status/details
   getSessionStatus: async (sessionId) => {
     try {
-      const response = await axiosClient.get(`/ai/session/${sessionId}`);
+      const response = await axiosClient.get(`/interview/session/${sessionId}`);
 
       return {
         success: true,
@@ -195,7 +195,7 @@ export const interviewAPI = {
       const formData = new FormData();
       formData.append('resume', file);
 
-      const response = await axiosClient.post('/ai/upload-resume', formData, {
+      const response = await axiosClient.post('/interview/upload-resume', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -219,7 +219,7 @@ export const interviewAPI = {
   // Get interview feedback
   getFeedback: async (sessionId) => {
     try {
-      const response = await axiosClient.get(`/ai/feedback/${sessionId}`);
+      const response = await axiosClient.get(`/interview/feedback/${sessionId}`);
 
       // Check if the response contains the expected data structure
       if (response.data && response.data.success) {
@@ -244,12 +244,12 @@ export const interviewAPI = {
       };
     }
   },
-  
+
   // Generate feedback for a session (useful if feedback wasn't generated automatically)
   generateFeedback: async (sessionId) => {
     try {
-      const response = await axiosClient.post(`/ai/generate-feedback/${sessionId}`);
-      
+      const response = await axiosClient.post(`/interview/generate-feedback/${sessionId}`);
+
       if (response.data && response.data.success) {
         return {
           success: true,
@@ -360,10 +360,10 @@ export const useInterviewAPI = () => {
   const continueInterview = async (sessionId, userAnswer, responseTime) => {
     try {
       // Check if userAnswer is a string or an object
-      const answerData = typeof userAnswer === 'string' 
-        ? { text: userAnswer, responseTime } 
+      const answerData = typeof userAnswer === 'string'
+        ? { text: userAnswer, responseTime }
         : { ...userAnswer, responseTime };
-      
+
       const result = await interviewAPI.continueInterview(sessionId, answerData);
 
       if (!result.success) {
@@ -396,11 +396,11 @@ export const useInterviewAPI = () => {
   const generateFeedback = async (sessionId) => {
     try {
       const result = await interviewAPI.generateFeedback(sessionId);
-      
+
       if (!result.success) {
         throw new Error(result.error);
       }
-      
+
       return result;
     } catch (error) {
       console.error('Generate feedback error:', error);

@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "https://api.codexa.live/api";
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 if (!baseURL) {
   throw new Error("API base URL is not defined");
