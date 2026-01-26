@@ -7,14 +7,13 @@ pipeline {
         BACKEND_IMAGE  = "${DOCKERHUB_USER}/codexa-backend"
     }
 
-    triggers {
-        githubPush()   // webhook trigger
-    }
-
     stages {
-       stage('Checkout Code') {
+        stage("Code") {
             steps {
-                checkout scm   // <-- CLONE happens here
+                echo "Cloning repository..."
+                git branch: 'main',
+                    url: 'https://github.com/gopaljha16/codexa.git'
+                echo "Code cloned successfully!"
             }
         }
        stage("Done clone"){
