@@ -29,8 +29,19 @@ pipeline {
                 echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
             '''
         }
+        
+        stage("Build Docker Images"){
+            steps{
+                    sh '''
+                        docker build -t $FRONTEND_IMAGE:latest ./frontend
+                        docker build -t $BACKEND_IMAGE:latest ./backend
+                    '''
+                    echo "Images Build Successfully done"
+            }
+        }
     }
+        
 }
-       }
-    }
+}
+}
 
