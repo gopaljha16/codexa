@@ -45,5 +45,15 @@ pipeline {
                 echo "Images built successfully"
             }
         }
+
+        stage("Push Docker Images") {
+            steps {
+                sh '''
+                    docker push $FRONTEND_IMAGE:latest
+                    docker push $BACKEND_IMAGE:latest
+                '''
+                echo "Docker images pushed to Docker Hub"
+            }
+        }
     }
 }
