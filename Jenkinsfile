@@ -1,11 +1,6 @@
 pipeline {
     agent any
 
-    options {
-        cleanWs()   // clean workspace before each build
-    }
-
-    
     environment {
         DOCKERHUB_USER = "gopal161"
         FRONTEND_IMAGE = "${DOCKERHUB_USER}/codexa-frontend"
