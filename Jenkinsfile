@@ -56,4 +56,16 @@ pipeline {
             }
         }
     }
+
+    post {
+        always {
+            sh 'docker logout'
+        }
+        success {
+            echo "✅ CI pipeline completed successfully"
+        }
+        failure {
+            echo "❌ CI pipeline failed"
+        }
+    }
 }
