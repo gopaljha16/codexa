@@ -25,8 +25,6 @@ exports.createDiscussion = async (req, res) => {
 
     await discussion.save();
 
-    console.log('Discussion created:', discussion._id);
-
     return res.status(201).json({
       success: true,
       message: 'Discussion created successfully',
@@ -76,8 +74,6 @@ exports.getDiscussions = async (req, res) => {
 
     const totalDiscussions = await Discussion.countDocuments(query);
     const totalPages = Math.ceil(totalDiscussions / limit);
-
-    console.log(`Fetched ${discussions.length} discussions for page ${page}`);
 
     return res.status(200).json({
       success: true,
@@ -218,7 +214,6 @@ exports.deleteDiscussion = async (req, res) => {
     const { id } = req.params;
     const userId = req.result.id;
     const userRole = req.result.role;
-    console.log(userRole);
 
     const discussion = await Discussion.findById(id);
 

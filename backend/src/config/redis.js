@@ -58,7 +58,14 @@ const redisWrapper = {
     
     // Wrap common Redis operations with error handling
     connect: async () => safeRedisOperation(redisClient.connect.bind(redisClient)),
-    set: async (key, value) => safeRedisOperation(redisClient.set.bind(redisClient), key, value),
+    set: async (key, value, ...args) => {
+        if (args.length >= 2 && typeof args[0] === 'string') {
+            const options = {};
+            options[args[0].toLowerCase()] = Number(args[1]);
+            return safeRedisOperation(redisClient.set.bind(redisClient), key, value, options);
+        }
+        return safeRedisOperation(redisClient.set.bind(redisClient), key, value);
+    },
     get: async (key) => safeRedisOperation(redisClient.get.bind(redisClient), key),
     del: async (key) => safeRedisOperation(redisClient.del.bind(redisClient), key),
     exists: async (key) => safeRedisOperation(redisClient.exists.bind(redisClient), key),

@@ -1,29 +1,29 @@
-# services - >frontend , backend  , judeg0 services
+# # services - >frontend , backend  , judeg0 services
 
-services:
+# services:
 
-  frontend:
-    image : gopal161/codexa-frontend
-    container_name: "codexa-frontend"
-    ports:
-      - "5173:80"
-    depends_on:
-      - backend
-    networks:
-      - codexa-prod
+#   frontend:
+#     image : gopal161/codexa-frontend
+#     container_name: "codexa-frontend"
+#     ports:
+#       - "5173:80"
+#     depends_on:
+#       - backend
+#     networks:
+#       - codexa-prod
 
-  backend:
-    image: gopal161/codexa-backend
-    container_name: "codexa-backend"
-    ports:
-      - "3000:3000"
-    depends_on:
-      - judge0 
-    networks:
-      - codexa-prod
-    environment:
-      - JUDGE0_BASE_URL=http://JUDGE0_SERVER_IP:2358
+#   backend:
+#     image: gopal161/codexa-backend
+#     container_name: "codexa-backend"
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - judge0 
+#     networks:
+#       - codexa-prod
+#     environment:
+#       - JUDGE0_BASE_URL=http://JUDGE0_SERVER_IP:2358
 
 
-networks:
-  codexa-prod: 
+# networks:
+#   codexa-prod: 

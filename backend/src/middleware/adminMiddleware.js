@@ -20,8 +20,6 @@ const adminMiddleware = async (req , res , next) =>{
 
         //validate the token
          const payload = jwt.verify(token , process.env.JWT_SECRET);
-          console.log(payload)
-         console.log(payload.role)
          if(payload.role!="admin")
             throw new Error(" Authenticated Path");
 

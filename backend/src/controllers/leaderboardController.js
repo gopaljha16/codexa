@@ -195,8 +195,7 @@ exports.autoFinalizeContestRankings = async () => {
 
             await leaderboard.save();
             await updateUserContestStats(rankings, contest._id);
-                console.log(`Auto-finalized leaderboard for contest ${contest._id}`);
-                
+ 
                 // Emit leaderboard update via Socket.IO
                 try {
                     const io = getIO();
@@ -209,7 +208,6 @@ exports.autoFinalizeContestRankings = async () => {
                     
                     // Emit the update to all connected clients
                     io.emit('leaderboardUpdate', leaderboardUpdate);
-                    console.log(`Emitted auto-finalized leaderboardUpdate for contest ${contest._id}`);
                 } catch (socketError) {
                     console.error("Socket.IO emission error:", socketError);
                     // Continue even if socket emission fails
@@ -241,7 +239,6 @@ exports.updateAndEmitLeaderboard = async (contestId) => {
         if (io) {
             const leaderboard = await getRealtimeLeaderboard(contestId);
             io.emit('leaderboardUpdate', { contestId, leaderboard });
-            console.log(`Emitted leaderboardUpdate for contest ${contestId}`);
         }
     } catch (error) {
         console.error(`Error updating and emitting leaderboard for contest ${contestId}:`, error);
@@ -437,7 +434,6 @@ exports.finalizeContestRankings = async (req, res) => {
             
             // Emit the update to all connected clients
             io.emit('leaderboardUpdate', leaderboardUpdate);
-            console.log(`Emitted finalized leaderboardUpdate for contest ${contestId}`);
         } catch (socketError) {
             console.error("Socket.IO emission error:", socketError);
             // Continue with response even if socket emission fails

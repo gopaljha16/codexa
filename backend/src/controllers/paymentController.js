@@ -34,7 +34,6 @@ const createOrder = async (req, res) => {
 
 
     const order = await razorpay.orders.create(options);
-    console.log("Order created successfully:", order);
 
     res.status(200).json({
       success: true,
@@ -53,14 +52,6 @@ const createOrder = async (req, res) => {
 const verifyOrder = async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, userId, plan } = req.body;
-
-    console.log("Verification request received:", {
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature: razorpay_signature ? "***" : "missing",
-      userId,
-      plan
-    });
 
     // Validate required fields
     if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature || !userId || !plan) {
@@ -85,12 +76,6 @@ const verifyOrder = async (req, res) => {
       .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest("hex");
 
-    console.log("Signature verification:", {
-      generated: generatedSignature,
-      received: razorpay_signature,
-      match: generatedSignature === razorpay_signature
-    });
-
     if (generatedSignature !== razorpay_signature) {
       return res.status(400).json({ 
         success: false, 
@@ -109,7 +94,6 @@ const verifyOrder = async (req, res) => {
 
     if (plan === "buy_tokens") {
       const tokens = 100;
-      console.log(`Adding ${tokens} tokens for user ${userId}`);
       user.tokensLeft = (user.tokensLeft || 0) + tokens;
       user.paymentHistory.push({
         orderId: razorpay_order_id,
@@ -121,10 +105,6 @@ const verifyOrder = async (req, res) => {
       let tokens = 100;
       if (plan === "pro") tokens = 300;
       else if (plan === "ultimate") tokens = 1000;
-
-      console.log(
-        `Activating ${plan} plan for user ${userId} with ${tokens} tokens`
-      );
 
       user.isPremium = true;
       user.tokensLeft = (user.tokensLeft || 0) + tokens;

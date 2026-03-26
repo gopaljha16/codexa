@@ -5,9 +5,7 @@ const clearHeatmapCache = async (req, res, next) => {
         const userId = req.result._id;
         const cacheKey = `heatmap_${userId}`;
         
-        console.log(`Clearing heatmap cache for user: ${userId}`);
         await redisClient.del(cacheKey);
-        console.log(`Cache cleared for key: ${cacheKey}`);
         
         next();
     } catch (error) {

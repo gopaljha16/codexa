@@ -76,11 +76,12 @@ const register = async (req, res) => {
 
         // Generate JWT token
         const token = jwt.sign({ _id: newUser._id, emailId: newUser.emailId, role: newUser.role }, process.env.JWT_SECRET, { expiresIn: 604800 });
+        const isProduction = process.env.NODE_ENV === 'production';
         res.cookie("token", token, {
             maxAge: 604800000,
             httpOnly: true,
-            sameSite: 'none',  // Required for cross-site cookies
-            secure: true       // Required for HTTPS
+            sameSite: isProduction ? 'none' : 'lax',
+            secure: isProduction,
         });
 
         res.status(201).json({
@@ -138,11 +139,12 @@ const login = async (req, res) => {
         // Increase token expiration to 7 days (604800 seconds)
         const token = jwt.sign({ _id: user._id, emailId: user.emailId, role: user.role }, process.env.JWT_SECRET, { expiresIn: 604800 });
         // Increase cookie maxAge to 7 days (604800000 milliseconds)
+        const isProduction = process.env.NODE_ENV === 'production';
         res.cookie("token", token, {
             maxAge: 604800000,
             httpOnly: true,
-            sameSite: 'none',  // Required for cross-site cookies
-            secure: true       // Required for HTTPS
+            sameSite: isProduction ? 'none' : 'lax',
+            secure: isProduction,
         });
 
         const reply = {
@@ -391,11 +393,12 @@ const googleLogin = async (req, res) => {
             { expiresIn: 604800 } // 7 days
         );
 
+        const isProduction = process.env.NODE_ENV === 'production';
         res.cookie("token", jwtToken, {
             maxAge: 604800000, // 7 days
             httpOnly: true,
-            sameSite: 'none', // cross-site cookie for api.codexa.live -> codexa.live
-            secure: true
+            sameSite: isProduction ? 'none' : 'lax',
+            secure: isProduction,
         });
 
         res.status(200).json({
