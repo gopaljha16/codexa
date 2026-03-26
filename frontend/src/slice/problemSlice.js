@@ -8,20 +8,14 @@ export const fetchSolvedProblems = createAsyncThunk(
       const state = getState();
       if (!state.auth.user) return [];
       
-      console.log('Fetching solved problems for user:', state.auth.user._id);
       const response = await axiosClient.get('/problem/problemsSolvedByUser');
       
-      // Log full response for debugging
-      console.log('Full response from /problem/problemsSolvedByUser:', response);
-
       // Handle the new response format
       if (response.data && response.data.success) {
-        console.log('Solved problems fetched successfully:', response.data.problems.length);
         return response.data.problems;
       } else {
         // Handle old response format for backward compatibility
         if (Array.isArray(response.data)) {
-          console.log('Solved problems fetched (old format):', response.data.length);
           return response.data;
         }
         

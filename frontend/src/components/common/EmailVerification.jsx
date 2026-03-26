@@ -43,7 +43,6 @@ const EmailVerification = ({ email, onVerified }) => {
     setVerificationAttempts(prev => prev + 1);
     
     try {
-      console.log("Verifying code:", { email, otp });
       const resultAction = await dispatch(verifyEmailOTPThunk({ email, otp }));
       
       if (resultAction.meta.requestStatus === 'fulfilled') {
@@ -75,7 +74,6 @@ const EmailVerification = ({ email, onVerified }) => {
     setCountdown(60); // 60 second cooldown after resend
     
     try {
-      console.log("Resending verification code to:", email);
       const resultAction = await dispatch(requestEmailVerificationOTPThunk(email));
       
       if (resultAction.meta.requestStatus === 'fulfilled') {

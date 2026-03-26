@@ -143,14 +143,10 @@ const Premium = () => {
         return;
       }
 
-      console.log("Razorpay Key:", razorpayKey);
-
       const { data: order } = await axiosClient.post(
         "/payments/create-order",
         { plan: planId }
       );
-
-      console.log("Order created:", order);
 
       const options = {
         key: razorpayKey,
@@ -160,7 +156,6 @@ const Premium = () => {
         description: `${planId.charAt(0).toUpperCase() + planId.slice(1)} Plan`,
         order_id: order.id,
         handler: async (response) => {
-          console.log("Payment response:", response);
           try {
             const verifyResponse = await axiosClient.post(
               "/payments/verify",
@@ -173,12 +168,9 @@ const Premium = () => {
               }
             );
 
-            console.log("Verification response:", verifyResponse.data);
-
             if (verifyResponse.data.success) {
               dispatch(getProfile());
               const selectedPlan = plans.find((plan) => plan.id === planId);
-              console.log("Selected plan:", selectedPlan); 
               
               if (selectedPlan) {
                 setPurchasedPlan(selectedPlan);
@@ -212,7 +204,6 @@ const Premium = () => {
         },
         modal: {
           ondismiss: () => {
-            console.log("Payment modal dismissed");
             setIsLoading(null);
           },
         },

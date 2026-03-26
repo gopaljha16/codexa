@@ -306,7 +306,6 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.token = action.payload.token;
         // Update localStorage for token and user
-        console.log("LOGIN SUCCESSFUL, SETTING TOKEN:", action.payload.token);
         localStorage.setItem('authToken', action.payload.token);
         localStorage.setItem('user', JSON.stringify(action.payload.user));
         if (action.payload.token) {

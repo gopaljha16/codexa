@@ -65,15 +65,12 @@ const Login = () => {
   const onSubmit = async (data) => {
     try {
       const res = await dispatch(loginUser(data));
-      console.log("Login dispatch result:", res);
 
       if (res?.meta?.requestStatus === "fulfilled") {
-        console.log("Login successful, token:", res.payload.token);
         toast.success("Logged In Successfully");
         await dispatch(getProfile());
       } else if (res?.payload?.needsVerification) {
         // Handle unverified email case
-        console.log("Email not verified:", res.payload.email);
         toast.warning("Your email is not verified. Please verify to continue.");
         setUnverifiedEmail(res.payload.email);
         setShowVerification(true); // Directly show verification page
