@@ -108,14 +108,7 @@ exports.submitContestCode = async (req, res) => {
         }));
 
         // Submit to Judge0
-        const submitResult = await SubmitBatch(testCases);
-        if (!submitResult?.length) {
-            throw new Error("Failed to submit to judge");
-        }
-
-        // Get tokens and fetch results
-        const resultTokens = submitResult.map(value => value.token);
-        const testResults = await submitToken(resultTokens);
+        const testResults = await SubmitBatch(testCases);
 
         // Process results
         let testCasesPassed = 0;
@@ -305,17 +298,7 @@ exports.runContestCode = async (req, res) => {
         }));
 
         // Submit to Judge0
-        const submitResult = await SubmitBatch(testCases);
-        if (!submitResult || !Array.isArray(submitResult)) {
-            return res.status(500).json({
-                success: false,
-                message: "Code evaluation failed"
-            });
-        }
-
-        // Get tokens and fetch results
-        const resultTokens = submitResult.map(value => value.token);
-        const testResults = await submitToken(resultTokens);
+        const testResults = await SubmitBatch(testCases);
 
         // Process test results and transform to frontend expected format
         let testCasesPassed = 0;

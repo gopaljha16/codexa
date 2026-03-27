@@ -112,9 +112,7 @@ exports.submitBattleCode = async (req, res) => {
             stdin: tc.input,
             expected_output: tc.output,
         }));
-        const submitResult = await SubmitBatch(batch);
-        const tokens = submitResult.map((v) => v.token);
-        const results = await submitToken(tokens);
+        const results = await SubmitBatch(batch);
 
         let passed = 0;
         let runtime = 0;

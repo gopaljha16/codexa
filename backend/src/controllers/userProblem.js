@@ -27,21 +27,14 @@ const createProblem = async (req, res) => {
             }));
 
 
-            const submitResult = await SubmitBatch(submission);
+            const testResult = await SubmitBatch(submission);
 
-            if (!submitResult || !Array.isArray(submitResult)) {
-                return res.status(500).send("Judge0 submission failed or no result returned.");
-            }
-
-            const resultToken = submitResult.map((value) => value.token); // creates the array and returns the token
-            // console.log(resultToken)
-            const testResult = await submitToken(resultToken)
 
             // check the test cases
             for (const test of testResult) {
                 if (test.status_id != 3) {
                     const statusDesc = test.status?.description || "Unknown Status";
-                    const errorDetails = test.stderr ? Buffer.from(test.stderr, 'base64').toString('utf-8') : "";
+                    const errorDetails = test.stderr ? test.stderr : "";
                     return res.status(400).send(`Problem validation failed: ${statusDesc}. ${errorDetails}`);
                 }
             }
@@ -95,23 +88,17 @@ const updateProblem = async (req, res) => {
                 expected_output: testcase.output,
             }));
 
-            const submitResult = await SubmitBatch(submission);
+            const testResult = await SubmitBatch(submission);
 
-            if (!submitResult || !Array.isArray(submitResult)) {
-                return res.status(500).send("Judge0 submission failed or no result returned.");
-            }
-
-            const resultToken = submitResult.map((value) => value.token);
-            const testResult = await submitToken(resultToken)
 
             // check the test cases
             for (const test of testResult) {
                 if (test.status_id !== 3) {
                     let errorMessage = `Test case failed. Status: ${test.status.description}.`;
                     if (test.status_id === 6) { // Compilation Error
-                        errorMessage = `Compilation Error: ${Buffer.from(test.compile_output, 'base64').toString('utf-8')}`;
+                        errorMessage = `Compilation Error: ${test.stderr}`;
                     } else if (test.stderr) {
-                        errorMessage += ` Error: ${Buffer.from(test.stderr, 'base64').toString('utf-8')}`;
+                        errorMessage += ` Error: ${test.stderr}`;
                     }
                     return res.status(400).send(errorMessage);
                 }

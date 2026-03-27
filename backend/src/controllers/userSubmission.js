@@ -80,13 +80,7 @@ const submitCode = async (req, res) => {
             expected_output: testcase.output,
         }));
 
-        const submitResult = await SubmitBatch(submission);
-        if (!submitResult || !Array.isArray(submitResult)) {
-            return res.status(500).send("Judge0 submission failed or no result returned.");
-        }
-
-        const resultToken = submitResult.map((value) => value.token);
-        const testResult = await submitToken(resultToken);
+        const testResult = await SubmitBatch(submission);
 
         let testCasesPassed = 0;
         let runtime = 0;
@@ -221,13 +215,7 @@ const runCode = async (req, res) => {
             expected_output: testcase.output,
         }));
 
-        const submitResult = await SubmitBatch(submission);
-        if (!submitResult || !Array.isArray(submitResult)) {
-            return res.status(500).send("Judge0 submission failed or no result returned.");
-        }
-
-        const resultToken = submitResult.map((value) => value.token);
-        const testResult = await submitToken(resultToken);
+        const testResult = await SubmitBatch(submission);
 
         let testCasesPassed = 0;
         let runtime = 0;
