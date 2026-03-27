@@ -4,7 +4,7 @@ import { FaJava, FaPython, FaJs } from 'react-icons/fa';
 import { SiCplusplus, SiRuby, SiSwift } from 'react-icons/si';
 import axiosClient from '../../utils/axiosClient';
 
-const SubmissionHistory = ({ problemId }) => {
+const SubmissionHistory = ({ problemId, refreshTrigger = 0 }) => {
   const [submissions, setSubmissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -28,7 +28,7 @@ const SubmissionHistory = ({ problemId }) => {
     };
 
     fetchSubmissions();
-  }, [problemId]);
+  }, [problemId, refreshTrigger]);
 
   const getLanguageIcon = (language) => {
     const lang = language.toLowerCase();

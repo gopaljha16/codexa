@@ -39,6 +39,28 @@ import DobutAi from "../components/common/DoubtAi";
 import SubmissionHistory from "../components/common/SubmissionHistory";
 import { celebrateSuccess, fullCelebration } from "../utils/celebration";
 
+const normalizeSubmitResult = (result) => {
+  if (!result) return null;
+
+  const passedTestCases =
+    result.passedTestCases ?? result.testCasesPassed ?? result.passed ?? 0;
+  const totalTestCases = result.totalTestCases ?? result.total ?? 0;
+  const accepted =
+    typeof result.accepted === "boolean"
+      ? result.accepted
+      : totalTestCases > 0 && passedTestCases === totalTestCases;
+
+  return {
+    ...result,
+    accepted,
+    passedTestCases,
+    totalTestCases,
+    status:
+      result.status ?? (accepted ? "Accepted" : "Submission Failed"),
+    error: result.error ?? result.errorMessage ?? null,
+  };
+};
+
 const ProblemPage = () => {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
@@ -48,6 +70,7 @@ const ProblemPage = () => {
   const [loading, setLoading] = useState(false);
   const [runResult, setRunResult] = useState(null);
   const [submitResult, setSubmitResult] = useState(null);
+  const [submissionRefreshToken, setSubmissionRefreshToken] = useState(0);
   const [activeLeftTab, setActiveLeftTab] = useState("description");
   const [activeRightTab, setActiveRightTab] = useState("code");
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -187,12 +210,14 @@ const ProblemPage = () => {
         }
       );
 
-      setSubmitResult(response.data);
+      const normalizedResult = normalizeSubmitResult(response.data);
+      setSubmitResult(normalizedResult);
+      setSubmissionRefreshToken((prev) => prev + 1);
       setLoading(false);
       setActiveRightTab("result");
 
       // Update problem solved status if submission accepted
-      if (response.data && response.data.accepted) {
+      if (normalizedResult?.accepted) {
         console.log("Submission accepted, updating problem solved status");
         setProblem((prevProblem) => ({
           ...prevProblem,
@@ -225,10 +250,15 @@ const ProblemPage = () => {
       }
     } catch (error) {
       console.error("Error submitting code:", error);
-      setSubmitResult({
-        success: false,
-        error: error.response?.data?.message || "Submission failed",
-      });
+      setSubmitResult(
+        normalizeSubmitResult({
+          success: false,
+          accepted: false,
+          status: "Submission Failed",
+          error: error.response?.data?.message || "Submission failed",
+        })
+      );
+      setSubmissionRefreshToken((prev) => prev + 1);
       setLoading(false);
       setActiveRightTab("result");
     }
@@ -621,7 +651,10 @@ const ProblemPage = () => {
                     </div>
                     <div className="bg-gray-900 rounded-lg p-6 border border-gray-800 text-center">
                       <div className="text-gray-400">
-                        <SubmissionHistory problemId={problemId} />
+                        <SubmissionHistory
+                          problemId={problemId}
+                          refreshTrigger={submissionRefreshToken}
+                        />
                       </div>
                     </div>
                   </div>
@@ -1181,30 +1214,27 @@ const ProblemPage = () => {
                   <div className="space-y-4">
                     <div
                       className={`p-5 rounded-xl border ${
-                        submitResult.passedTestCases ===
-                        submitResult.totalTestCases
+                        submitResult.accepted
                           ? "bg-emerald-900/10 border-emerald-500/30"
                           : "bg-red-900/10 border-red-500/30"
                       }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center space-x-3">
-                          {submitResult.passedTestCases ===
-                          submitResult.totalTestCases ? (
+                          {submitResult.accepted ? (
                             <CheckCircle className="w-6 h-6 text-emerald-400 flex-shrink-0" />
                           ) : (
                             <XCircle className="w-6 h-6 text-red-400 flex-shrink-0" />
                           )}
                           <div>
                             <h4 className="font-bold text-lg">
-                              {submitResult.passedTestCases ===
-                              submitResult.totalTestCases
-                                ? "Accepted!"
-                                : "Submission Failed"}
+                              {submitResult.status ||
+                                (submitResult.accepted
+                                  ? "Accepted!"
+                                  : "Submission Failed")}
                             </h4>
                             <p className="text-sm text-gray-400">
-                              {submitResult.passedTestCases ===
-                              submitResult.totalTestCases
+                              {submitResult.accepted
                                 ? "Your solution passed all test cases"
                                 : "Some test cases didn't pass"}
                             </p>
@@ -1213,11 +1243,19 @@ const ProblemPage = () => {
                         <div className="flex items-center space-x-4 text-sm">
                           <div className="flex items-center text-gray-300">
                             <Clock className="w-4 h-4 mr-1.5 text-blue-400" />
-                            Runtime: {submitResult.runtime || "N/A"}
+                            Runtime:{" "}
+                            {submitResult.runtime !== undefined &&
+                            submitResult.runtime !== null
+                              ? submitResult.runtime
+                              : "N/A"}
                           </div>
                           <div className="flex items-center text-gray-300">
                             <MemoryStick className="w-4 h-4 mr-1.5 text-purple-400" />
-                            Memory: {submitResult.memory || "N/A"}
+                            Memory:{" "}
+                            {submitResult.memory !== undefined &&
+                            submitResult.memory !== null
+                              ? submitResult.memory
+                              : "N/A"}
                           </div>
                         </div>
                       </div>
@@ -1241,7 +1279,10 @@ const ProblemPage = () => {
                           <span className="text-gray-400 text-sm">Runtime</span>
                         </div>
                         <div className="text-xl font-bold text-white">
-                          {submitResult.runtime || "N/A"}
+                          {submitResult.runtime !== undefined &&
+                          submitResult.runtime !== null
+                            ? submitResult.runtime
+                            : "N/A"}
                         </div>
                         {submitResult.runtimePercentile && (
                           <div className="text-xs text-gray-400 mt-1">
@@ -1277,8 +1318,7 @@ const ProblemPage = () => {
                           </h5>
                           <span
                             className={`text-sm ${
-                              submitResult.passedTestCases ===
-                              submitResult.totalTestCases
+                              submitResult.accepted
                                 ? "text-emerald-400"
                                 : "text-red-400"
                             }`}
@@ -1290,16 +1330,17 @@ const ProblemPage = () => {
                         <div className="w-full bg-gray-800 rounded-full h-2">
                           <div
                             className={`h-2 rounded-full ${
-                              submitResult.passedTestCases ===
-                              submitResult.totalTestCases
+                              submitResult.accepted
                                 ? "bg-emerald-500"
                                 : "bg-red-500"
                             }`}
                             style={{
                               width: `${
-                                (submitResult.passedTestCases /
-                                  submitResult.totalTestCases) *
-                                100
+                                submitResult.totalTestCases > 0
+                                  ? (submitResult.passedTestCases /
+                                      submitResult.totalTestCases) *
+                                    100
+                                  : 0
                               }%`,
                             }}
                           ></div>

@@ -152,10 +152,14 @@ const submitCode = async (req, res) => {
             success: true,
             message: accepted ? "Submission accepted" : "Submission processed",
             accepted,
+            status,
+            errorMessage,
             totalTestCases: submittedResult.totalTestCases,
             passedTestCases: testCasesPassed,
+            testCasesPassed,
             runtime,
-            memory
+            memory,
+            submissionId: submittedResult._id
         });
 
     } catch (err) {
